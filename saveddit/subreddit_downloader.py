@@ -123,7 +123,8 @@ class SubredditDownloader:
                         if not os.path.exists(files_dir):
                             os.makedirs(files_dir)
 
-                        self.logger.spam(self.indent_1 + "This is a reddit video")
+                        self.logger.spam(
+                            self.indent_1 + "This is a reddit video")
                         self.download_reddit_video(submission, files_dir)
                         success = True
                     elif self.is_gfycat_link(submission.url) or self.is_redgifs_link(submission.url):
@@ -144,7 +145,8 @@ class SubredditDownloader:
                         if not os.path.exists(files_dir):
                             os.makedirs(files_dir)
 
-                        self.logger.spam(self.indent_1 + "This is an imgur album")
+                        self.logger.spam(
+                            self.indent_1 + "This is an imgur album")
                         self.download_imgur_album(submission, files_dir)
                         success = True
                     elif self.is_imgur_image(submission.url):
@@ -196,7 +198,7 @@ class SubredditDownloader:
                             submission, submission_dir, comment_limit)
                     else:
                         self.logger.spam(
-                                self.indent_1 + "Skipping comments")
+                            self.indent_1 + "Skipping comments")
 
                     if success:
                         self.logger.spam(
@@ -254,7 +256,8 @@ class SubredditDownloader:
                 'continuedl': True,
                 'outtmpl': output_path + '/%(id)s.%(ext)s'
             }
-            self.logger.spam(self.indent_2 + "Downloading " + url + " with youtube-dl")
+            self.logger.spam(self.indent_2 + "Downloading " +
+                             url + " with youtube-dl")
             with youtube_dl.YoutubeDL(download_options) as ydl:
                 ydl.download([url])
 
@@ -316,7 +319,8 @@ class SubredditDownloader:
             crosspost_parent_list = getattr(
                 submission, "crosspost_parent_list", None)
             if crosspost_parent_list != None:
-                self.logger.spam(self.indent_2 + "This is a crosspost to a reddit video")
+                self.logger.spam(
+                    self.indent_2 + "This is a crosspost to a reddit video")
                 first_parent = crosspost_parent_list[0]
                 media = first_parent["media"]
 
@@ -440,10 +444,12 @@ class SubredditDownloader:
         url = data["link"]
         image_type = data["type"]
         if "video/" in image_type:
-            self.logger.spam(self.indent_2 + "This is an imgur link to a video file")
+            self.logger.spam(
+                self.indent_2 + "This is an imgur link to a video file")
             image_type = image_type.split("video/")[-1]
         elif "image/" in image_type:
-            self.logger.spam(self.indent_2 + "This is an imgur link to an image file")
+            self.logger.spam(
+                self.indent_2 + "This is an imgur link to an image file")
             image_type = image_type.split("image/")[-1]
 
         filename = image_id + "." + image_type

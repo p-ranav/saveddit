@@ -1,7 +1,9 @@
-ffmpeg_python==0.2.0
-coloredlogs==15.0
 youtube_dl==2021.4.1
-requests==2.25.1
-praw==7.2.0
+ffmpeg_python==0.2.0
 verboselogs==1.7
+praw==7.2.0
+requests==2.25.1
+coloredlogs==15.0
+colorama==0.4.4
+tqdm==4.58.0
 ffmpeg==1.4
