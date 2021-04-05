@@ -8,7 +8,10 @@ IMGUR_CLIENT_SECRET = "731679375fb1f5753d8bec6ae8f97bb8bee09c09"
 def get_imgur_album_images_count(album_id):
   request = "https://api.imgur.com/3/album/" + album_id
   res = requests.get(request, headers={"Authorization": "Client-ID " + IMGUR_CLIENT_ID})
-  return res.json()["data"]["images_count"]
+  if res.status_code == 200:
+    return res.json()["data"]["images_count"]
+  else:
+    return 0
 
 def download_imgur_album(album_id, output_path):
   request = "https://api.imgur.com/3/album/" + album_id
@@ -23,3 +26,8 @@ def download_imgur_album(album_id, output_path):
       urllib.request.urlretrieve(url, save_path)
     except Exception as e:
       print(e)
+
+def get_imgur_image_meta(image_id):
+  request = "https://api.imgur.com/3/image/" + image_id
+  res = requests.get(request, headers={"Authorization": "Client-ID " + IMGUR_CLIENT_ID})
+  return res.json()["data"]

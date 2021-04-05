@@ -3,7 +3,7 @@ import praw
 import re
 import urllib.request
 from pprint import pprint
-from saveddit.imgur_album_downloader import get_imgur_album_images_count, download_imgur_album
+from saveddit.imgur_downloader import get_imgur_album_images_count, download_imgur_album, get_imgur_image_meta
 
 def download_subreddit(subreddit_name, output_path):
   reddit = praw.Reddit(
@@ -57,7 +57,7 @@ def download_subreddit(subreddit_name, output_path):
               gallery_dir = os.path.join(category_dir, gallery_id)
               if not os.path.exists(gallery_dir):
                 os.makedirs(gallery_dir)
-              item_format = item_format.split("image/")[-1]
+              item_format = item_format.split("image/")[-1] # TODO: Is "video/" a possibility?
               item_filename = str(j).zfill(4) + "_" + media_id + "." + item_format
               item_url = item_metadata["s"]["u"]
               save_path = os.path.join(gallery_dir, item_filename)
@@ -90,5 +90,27 @@ def download_subreddit(subreddit_name, output_path):
           album_dir = str(i).zfill(4) + "_" + album_id
           save_path = os.path.join(category_dir, album_dir)
           download_imgur_album(album_id, save_path)
+      elif "imgur.com" in submission.url:
+        # Other imgur content, e.g., .gifv, '.mp4', '.jpg', etc.
+        url_leaf = submission.url.split("/")[-1]
+        if "." in url_leaf:
+          image_id = url_leaf.split(".")[0]
+        else:
+          image_id = url_leaf
+        data = get_imgur_image_meta(image_id)
+        url = data["link"]
+        image_type = data["type"]
+        if "video/" in image_type:
+          image_type = image_type.split("video/")[-1]
+        elif "image/" in image_type:
+          image_type = image_type.split("image/")[-1]
 
-download_subreddit("pics", "/Users/pranav/Downloads/Reddit/")
+        filename = str(i).zfill(4) + "_" + image_id + "." + image_type
+        save_path = os.path.join(category_dir, filename)
+
+        try:
+          urllib.request.urlretrieve(url, save_path)
+        except Exception as e:
+          print(e)
+
+download_subreddit("interestingasfuck", "/Users/pranav/Downloads/Reddit/")
