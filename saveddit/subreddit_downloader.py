@@ -2,6 +2,7 @@ import coloredlogs, logging, verboselogs
 from datetime import datetime
 import os
 import json
+import ffmpeg
 import praw
 from pprint import pprint
 import re
@@ -76,9 +77,13 @@ class SubredditDownloader:
           success = False
 
           if self.is_direct_link_to_content(submission.url, [".png", ".jpg", ".jpeg", ".mp4", ".gif"]):
+            files_dir = os.path.join(submission_dir, "files")
+            if not os.path.exists(files_dir):
+              os.makedirs(files_dir)
+
             filename = submission.url.split("/")[-1]
             self.logger.spam("#" + str(i) + " This is a direct link to a " + filename.split(".")[-1] + " file")
-            save_path = os.path.join(submission_dir, filename)
+            save_path = os.path.join(files_dir, filename)
             self.download_direct_link(submission, save_path)
             success = True
           elif self.is_reddit_gallery(submission.url):
@@ -87,8 +92,12 @@ class SubredditDownloader:
             self.download_reddit_gallery(submission, os.path.join(submission_dir, gallery_dir))
             success = True
           elif self.is_reddit_video(submission.url):
+            files_dir = os.path.join(submission_dir, "files")
+            if not os.path.exists(files_dir):
+              os.makedirs(files_dir)
+
             self.logger.spam("#" + str(i) + " This is a reddit video")
-            self.download_reddit_video(submission, submission_dir)
+            self.download_reddit_video(submission, files_dir)
             success = True
           elif self.is_gfycat_link(submission.url) or self.is_redgifs_link(submission.url):
             if self.is_gfycat_link(submission.url):
@@ -133,7 +142,7 @@ class SubredditDownloader:
     try:
       urllib.request.urlretrieve(submission.url, output_path)
     except Exception as e:
-      print(e)
+      self.logger.error(e)
 
   def is_reddit_gallery(self, url):
     return "reddit.com/gallery" in url
@@ -186,13 +195,36 @@ class SubredditDownloader:
         media = first_parent["media"]
 
     if media != None:
+      self.logger.spam("   - Downloading video component")
       url = media["reddit_video"]["fallback_url"]
-      if ".mp4" in url:
-        save_path = os.path.join(output_path, media_id + ".mp4")
-        try:
-          urllib.request.urlretrieve(url, save_path)
-        except Exception as e:
-          print(e)
+      video_save_path = os.path.join(output_path, media_id + "_video.mp4")
+      try:
+        urllib.request.urlretrieve(url, video_save_path)
+      except Exception as e:
+        print(e)
+
+      # Download the audio
+      self.logger.spam("   - Downloading audio component")
+      audio_downloaded = False
+      audio_save_path = os.path.join(output_path, media_id + "_audio.mp4")
+      try:
+        urllib.request.urlretrieve(submission.url + "/DASH_audio.mp4", audio_save_path)
+        audio_downloaded = True
+      except Exception as e:
+        pass
+
+      if audio_downloaded == True:
+        # Merge mp4 files
+        self.logger.spam("   - Merging video & audio components with ffmpeg")
+        output_save_path = os.path.join(output_path, media_id + ".mp4")
+        input_video = ffmpeg.input(video_save_path)
+        input_audio = ffmpeg.input(audio_save_path)
+        ffmpeg.concat(input_video, input_audio, v=1, a=1)\
+          .output(output_save_path)\
+            .global_args('-loglevel', 'error')\
+              .global_args('-y')\
+                .run()
+        self.logger.spam("  - Done merging with ffmpeg")
 
   def is_gfycat_link(self, url):
     return "gfycat.com/" in url
@@ -210,7 +242,7 @@ class SubredditDownloader:
         try:
           urllib.request.urlretrieve(fallback_url, save_path)
         except Exception as e:
-          pass
+          self.logger.error(e)
 
   def is_imgur_album(self, url):
     return "imgur.com/a/" in url or "imgur.com/gallery/" in url
