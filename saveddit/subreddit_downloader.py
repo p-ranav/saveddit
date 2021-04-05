@@ -1,4 +1,6 @@
 import coloredlogs
+from colorama import Fore
+import contextlib
 import logging
 import verboselogs
 from datetime import datetime
@@ -9,6 +11,7 @@ import praw
 from pprint import pprint
 import re
 import requests
+from tqdm import tqdm
 import urllib.request
 import youtube_dl
 
@@ -45,7 +48,10 @@ class SubredditDownloader:
         coloredlogs.install(level='SPAM', logger=self.logger,
                             fmt='%(message)s', level_styles=level_styles)
 
-    def download(self, output_path, categories=DEFAULT_CATEGORIES, post_limit=DEFAULT_POST_LIMIT, comment_limit=0):
+        self.indent_1 = ""
+        self.indent_2 = ""
+
+    def download(self, output_path, categories=DEFAULT_CATEGORIES, post_limit=DEFAULT_POST_LIMIT, skip_comments=False, comment_limit=0):
         '''
         categories: List of categories within the subreddit to download (see SubredditDownloader.DEFAULT_CATEGORIES)
         post_limit: Number of posts to download (default: None, i.e., all posts)
@@ -66,6 +72,9 @@ class SubredditDownloader:
 
             for i, submission in enumerate(category_function(limit=post_limit)):
                 prefix_str = '#' + str(i) + ' '
+                self.indent_1 = ' ' * len(prefix_str) + "* "
+                self.indent_2 = ' ' * len(self.indent_1) + "- "
+
                 has_url = getattr(submission, "url", None)
                 if has_url:
                     title = submission.title
@@ -85,7 +94,7 @@ class SubredditDownloader:
                         os.makedirs(submission_dir)
 
                     self.logger.spam(
-                        prefix_str + "Processing `" + submission.url + "`")
+                        self.indent_1 + "Processing `" + submission.url + "`")
 
                     success = False
 
@@ -96,22 +105,9 @@ class SubredditDownloader:
 
                         filename = submission.url.split("/")[-1]
                         self.logger.spam(
-                            prefix_str + "This is a direct link to a " + filename.split(".")[-1] + " file")
+                            self.indent_1 + "This is a direct link to a " + filename.split(".")[-1] + " file")
                         save_path = os.path.join(files_dir, filename)
                         self.download_direct_link(submission, save_path)
-                        success = True
-                    elif self.is_youtube_link(submission.url) or self.is_supported_by_youtubedl(submission.url):
-                        files_dir = os.path.join(submission_dir, "files")
-                        if not os.path.exists(files_dir):
-                            os.makedirs(files_dir)
-
-                        if self.is_youtube_link(submission.url):
-                            self.logger.spam(
-                                prefix_str + "This is a youtube link")
-                        else:
-                            self.logger.spam(
-                                prefix_str + "This link is supported by a youtube-dl extractor")
-                        self.download_youtube_video(submission.url, files_dir)
                         success = True
                     elif self.is_reddit_gallery(submission.url):
                         files_dir = os.path.join(submission_dir, "files")
@@ -119,7 +115,7 @@ class SubredditDownloader:
                             os.makedirs(files_dir)
 
                         self.logger.spam(
-                            prefix_str + "This is a reddit gallery")
+                            self.indent_1 + "This is a reddit gallery")
                         self.download_reddit_gallery(submission, files_dir)
                         success = True
                     elif self.is_reddit_video(submission.url):
@@ -127,7 +123,7 @@ class SubredditDownloader:
                         if not os.path.exists(files_dir):
                             os.makedirs(files_dir)
 
-                        self.logger.spam(prefix_str + "This is a reddit video")
+                        self.logger.spam(self.indent_1 + "This is a reddit video")
                         self.download_reddit_video(submission, files_dir)
                         success = True
                     elif self.is_gfycat_link(submission.url) or self.is_redgifs_link(submission.url):
@@ -137,10 +133,10 @@ class SubredditDownloader:
 
                         if self.is_gfycat_link(submission.url):
                             self.logger.spam(
-                                prefix_str + "This is a gfycat link")
+                                self.indent_1 + "This is a gfycat link")
                         else:
                             self.logger.spam(
-                                prefix_str + "This is a redgif link")
+                                self.indent_1 + "This is a redgif link")
                         self.download_gfycat_or_redgif(submission, files_dir)
                         success = True
                     elif self.is_imgur_album(submission.url):
@@ -148,7 +144,7 @@ class SubredditDownloader:
                         if not os.path.exists(files_dir):
                             os.makedirs(files_dir)
 
-                        self.logger.spam(prefix_str + "This is an imgur album")
+                        self.logger.spam(self.indent_1 + "This is an imgur album")
                         self.download_imgur_album(submission, files_dir)
                         success = True
                     elif self.is_imgur_image(submission.url):
@@ -157,40 +153,57 @@ class SubredditDownloader:
                             os.makedirs(files_dir)
 
                         self.logger.spam(
-                            prefix_str + "This is an imgur image or video")
+                            self.indent_1 + "This is an imgur image or video")
                         self.download_imgur_image(submission, files_dir)
                         success = True
                     elif self.is_self_post(submission):
-                        self.logger.spam(prefix_str + "This is a self-post")
+                        self.logger.spam(self.indent_1 + "This is a self-post")
+                        success = True
+                    elif self.is_youtube_link(submission.url) or self.is_supported_by_youtubedl(submission.url):
+                        files_dir = os.path.join(submission_dir, "files")
+                        if not os.path.exists(files_dir):
+                            os.makedirs(files_dir)
+
+                        if self.is_youtube_link(submission.url):
+                            self.logger.spam(
+                                self.indent_1 + "This is a youtube link")
+                        else:
+                            self.logger.spam(
+                                self.indent_1 + "This link is supported by a youtube-dl extractor")
+                        self.download_youtube_video(submission.url, files_dir)
                         success = True
                     else:
                         success = True
                         pass
 
                     # Download HTML of link
-                    self.logger.spam(prefix_str + "Downloading HTML")
+                    self.logger.spam(self.indent_1 + "Downloading HTML")
                     self.download_html(submission.url, submission_dir)
 
                     # Download selftext and submission meta
-                    self.logger.spam(prefix_str + "Saving submission.json")
+                    self.logger.spam(self.indent_1 + "Saving submission.json")
                     self.download_submission_meta(submission, submission_dir)
 
                     # Downlaod comments if requested
-                    if comment_limit == None:
-                        self.logger.spam(
-                            prefix_str + "Saving all comments to comments.json")
+                    if not skip_comments:
+                        if comment_limit == None:
+                            self.logger.spam(
+                                self.indent_1 + "Saving all comments to comments.json")
+                        else:
+                            self.logger.spam(
+                                self.indent_1 + "Saving top-level comments to comments.json")
+                        self.download_comments(
+                            submission, submission_dir, comment_limit)
                     else:
                         self.logger.spam(
-                            prefix_str + "Saving top-level comments to comments.json")
-                    self.download_comments(
-                        submission, submission_dir, comment_limit)
+                                self.indent_1 + "Skipping comments")
 
                     if success:
                         self.logger.spam(
-                            prefix_str + "Saved to " + submission_dir + "\n")
+                            self.indent_1 + "Saved to " + submission_dir + "\n")
                     else:
                         self.logger.warning(
-                            prefix_str + "Failed to download from link " + submission.url + "\n"
+                            self.indent_1 + "Failed to download from link " + submission.url + "\n"
                         )
 
     def is_direct_link_to_content(self, url, supported_file_formats):
@@ -207,27 +220,43 @@ class SubredditDownloader:
         return "youtube.com" in url or "youtu.be" in url
 
     def is_supported_by_youtubedl(self, url):
-        if "flickr.com/photos" in url:
+        # Since youtube-dl's quiet mode is amything BUT quiet
+        # using contextlib to redirect stdout to /dev/null
+        with contextlib.redirect_stdout(None):
+            if "flickr.com/photos" in url:
+                return False
+
+            # Try to extract info from URL
+            try:
+                download_options = {
+                    'quiet': True,
+                    'warnings': True
+                }
+                ydl = youtube_dl.YoutubeDL(download_options)
+                r = ydl.extract_info(url, download=False)
+            except Exception as e:
+                # No media found through youtube-dl
+                return False
+
+            extractors = youtube_dl.extractor.gen_extractors()
+            for e in extractors:
+                if e.suitable(url) and e.IE_NAME != 'generic':
+                    return True
             return False
 
-        extractors = youtube_dl.extractor.gen_extractors()
-        for e in extractors:
-            if e.suitable(url) and e.IE_NAME != 'generic':
-                return True
-        return False
-
     def download_youtube_video(self, url, output_path):
-        download_options = {
-            'format': "299+bestaudio/298+bestaudio/137+bestaudio/136+bestaudio/best",
-            'quiet': True,
-            'ignoreerrors': True,
-            'nooverwrites': True,
-            'continuedl': True,
-            'outtmpl': output_path + '/%(id)s.%(ext)s'
-        }
-        self.logger.spam("   - Downloading " + url + " with youtube-dl")
-        with youtube_dl.YoutubeDL(download_options) as ydl:
-            ydl.download([url])
+        with contextlib.redirect_stdout(None):
+            download_options = {
+                'format': "299+bestaudio/298+bestaudio/137+bestaudio/136+bestaudio/best",
+                'quiet': True,
+                'ignoreerrors': True,
+                'nooverwrites': True,
+                'continuedl': True,
+                'outtmpl': output_path + '/%(id)s.%(ext)s'
+            }
+            self.logger.spam(self.indent_2 + "Downloading " + url + " with youtube-dl")
+            with youtube_dl.YoutubeDL(download_options) as ydl:
+                ydl.download([url])
 
     def is_reddit_gallery(self, url):
         return "reddit.com/gallery" in url
@@ -236,7 +265,7 @@ class SubredditDownloader:
         gallery_data = getattr(submission, "gallery_data", None)
         media_metadata = getattr(submission, "media_metadata", None)
         self.logger.spam(
-            "   - Looking for submission.gallery_data and submission.media_metadata")
+            self.indent_2 + "Looking for submission.gallery_data and submission.media_metadata")
 
         if gallery_data == None and media_metadata == None:
             # gallery_data not in submission
@@ -245,15 +274,16 @@ class SubredditDownloader:
                 submission, "crosspost_parent_list", None)
             if crosspost_parent_list != None:
                 self.logger.spam(
-                    "   - This is a crosspost to a reddit gallery")
+                    self.indent_2 + "This is a crosspost to a reddit gallery")
                 first_parent = crosspost_parent_list[0]
                 gallery_data = first_parent["gallery_data"]
                 media_metadata = first_parent["media_metadata"]
 
         if gallery_data != None and media_metadata != None:
-            self.logger.spam("   - This reddit gallery has " +
-                             str(len(gallery_data["items"])) + " images")
-            for j, item in enumerate(gallery_data["items"]):
+            image_count = len(gallery_data["items"])
+            self.logger.spam(self.indent_2 + "This reddit gallery has " +
+                             str(image_count) + " images")
+            for j, item in tqdm(enumerate(gallery_data["items"]), total=image_count, bar_format='%s%s{l_bar}{bar:20}{r_bar}%s' % (self.indent_2, Fore.WHITE + Fore.LIGHTBLACK_EX, Fore.RESET)):
                 media_id = item["media_id"]
                 item_metadata = media_metadata[media_id]
                 item_format = item_metadata['m']
@@ -270,7 +300,7 @@ class SubredditDownloader:
                     try:
                         urllib.request.urlretrieve(item_url, save_path)
                     except Exception as e:
-                        print(e)
+                        self.logger.error(self.indent_2 + e)
 
     def is_reddit_video(self, url):
         return "v.redd.it" in url
@@ -279,19 +309,19 @@ class SubredditDownloader:
         media = getattr(submission, "media", None)
         media_id = submission.url.split("v.redd.it/")[-1]
 
-        self.logger.spam("   - Looking for submission.media")
+        self.logger.spam(self.indent_2 + "Looking for submission.media")
 
         if media == None:
             # link might be a crosspost
             crosspost_parent_list = getattr(
                 submission, "crosspost_parent_list", None)
             if crosspost_parent_list != None:
-                self.logger.spam("   - This is a crosspost to a reddit video")
+                self.logger.spam(self.indent_2 + "This is a crosspost to a reddit video")
                 first_parent = crosspost_parent_list[0]
                 media = first_parent["media"]
 
         if media != None:
-            self.logger.spam("   - Downloading video component")
+            self.logger.spam(self.indent_2 + "Downloading video component")
             url = media["reddit_video"]["fallback_url"]
             video_save_path = os.path.join(
                 output_path, media_id + "_video.mp4")
@@ -301,7 +331,7 @@ class SubredditDownloader:
                 print(e)
 
             # Download the audio
-            self.logger.spam("   - Downloading audio component")
+            self.logger.spam(self.indent_2 + "Downloading audio component")
             audio_downloaded = False
             audio_save_path = os.path.join(
                 output_path, media_id + "_audio.mp4")
@@ -315,7 +345,7 @@ class SubredditDownloader:
             if audio_downloaded == True:
                 # Merge mp4 files
                 self.logger.spam(
-                    "   - Merging video & audio components with ffmpeg")
+                    self.indent_2 + "Merging video & audio components with ffmpeg")
                 output_save_path = os.path.join(output_path, media_id + ".mp4")
                 input_video = ffmpeg.input(video_save_path)
                 input_audio = ffmpeg.input(audio_save_path)
@@ -324,10 +354,10 @@ class SubredditDownloader:
                     .global_args('-loglevel', 'error')\
                       .global_args('-y')\
                     .run()
-                self.logger.spam("  - Done merging with ffmpeg")
+                self.logger.spam(self.indent_2 + "Done merging with ffmpeg")
             else:
                 self.logger.spam(
-                    "   - This video does not have an audio component")
+                    self.indent_2 + "This video does not have an audio component")
 
     def is_gfycat_link(self, url):
         return "gfycat.com/" in url
@@ -337,7 +367,7 @@ class SubredditDownloader:
 
     def download_gfycat_or_redgif(self, submission, output_dir):
         self.logger.spam(
-            "   - Looking for submission.preview.reddit_video_preview.fallback_url")
+            self.indent_2 + "Looking for submission.preview.reddit_video_preview.fallback_url")
         if "reddit_video_preview" in submission.preview:
             if "fallback_url" in submission.preview["reddit_video_preview"]:
                 fallback_url = submission.preview["reddit_video_preview"]["fallback_url"]
@@ -359,7 +389,7 @@ class SubredditDownloader:
         if res.status_code == 200:
             return res.json()["data"]["images_count"]
         else:
-            self.logger.spam("   - This imgur album is empty")
+            self.logger.spam(self.indent_2 + "This imgur album is empty")
             return 0
 
     def get_imgur_image_meta(self, image_id):
@@ -376,16 +406,16 @@ class SubredditDownloader:
         elif "imgur.com/gallery/" in submission.url:
             album_id = submission.url.split("imgur.com/gallery/")[-1]
 
-        self.logger.spam("   - Album ID " + album_id)
+        self.logger.spam(self.indent_2 + "Album ID " + album_id)
 
         images_count = self.get_imgur_album_images_count(album_id)
         if images_count > 0:
             request = "https://api.imgur.com/3/album/" + album_id
             res = requests.get(request, headers={
                                "Authorization": "Client-ID " + SubredditDownloader.IMGUR_CLIENT_ID})
-            self.logger.spam("   - This imgur album has " +
-                             str(len(res.json()["data"]["images"])) + " images")
-            for i, image in enumerate(res.json()["data"]["images"]):
+            self.logger.spam(self.indent_2 + "This imgur album has " +
+                             str(images_count) + " images")
+            for i, image in tqdm(enumerate(res.json()["data"]["images"]), total=images_count, bar_format='%s%s{l_bar}{bar:20}{r_bar}%s' % (self.indent_2, Fore.WHITE + Fore.LIGHTBLACK_EX, Fore.RESET)):
                 url = image["link"]
                 filename = str(i).zfill(4) + "_" + url.split("/")[-1]
                 save_path = os.path.join(output_dir, filename)
@@ -394,7 +424,7 @@ class SubredditDownloader:
                         os.makedirs(output_dir)
                     urllib.request.urlretrieve(url, save_path)
                 except Exception as e:
-                    print(e)
+                    self.logger.error(self.indent_2 + e)
 
     def is_imgur_image(self, url):
         return "imgur.com" in url
@@ -410,10 +440,10 @@ class SubredditDownloader:
         url = data["link"]
         image_type = data["type"]
         if "video/" in image_type:
-            self.logger.spam("   - This is an imgur link to a video file")
+            self.logger.spam(self.indent_2 + "This is an imgur link to a video file")
             image_type = image_type.split("video/")[-1]
         elif "image/" in image_type:
-            self.logger.spam("   - This is an imgur link to an image file")
+            self.logger.spam(self.indent_2 + "This is an imgur link to an image file")
             image_type = image_type.split("image/")[-1]
 
         filename = image_id + "." + image_type
@@ -422,20 +452,20 @@ class SubredditDownloader:
         try:
             urllib.request.urlretrieve(url, save_path)
         except Exception as e:
-            print(e)
+            self.logger.error(self.indent_2 + e)
 
     def download_comments(self, submission, output_dir, comment_limit):
         # Save comments - Breath first unwrap of comment forest
-        if comment_limit == None:
-            self.logger.spam("   - Comment limit set to " +
-                             str(comment_limit) + ". Downloading all comments")
-        elif comment_limit == 0:
-            self.logger.spam(
-                "   - Comment limit set to 0. Downloading only top-level comments")
         comments_list = []
         with open(os.path.join(output_dir, 'comments.json'), 'w') as file:
             submission.comments.replace_more(limit=comment_limit)
-            for comment in submission.comments.list():
+            limited_comments = submission.comments.list()
+            if not len(limited_comments):
+                # No comments
+                self.logger.spam(self.indent_2 + "No comments found")
+                return
+
+            for comment in tqdm(limited_comments, total=len(limited_comments), bar_format='%s%s{l_bar}{bar:20}{r_bar}%s' % (self.indent_2, Fore.WHITE + Fore.LIGHTBLACK_EX, Fore.RESET)):
                 comment_dict = {}
                 try:
                     if comment.author:

@@ -25,25 +25,34 @@ def check_positive(value):
 
 
 def main(args):
-    downloader = SubredditDownloader(args.subreddit)
-    downloader.download("/Users/pranav/Downloads/Reddit",
-                        categories=args.categories, post_limit=args.post_limit)
+    for subreddit in args.r:
+        downloader = SubredditDownloader(subreddit)
+        downloader.download("/Users/pranav/Downloads/Reddit",
+                            categories=args.f, post_limit=args.l, skip_comments=args.skip_comments)
 
 
 if __name__ == "__main__":
     print(asciiart())
 
     parser = argparse.ArgumentParser(prog="saveddit")
-    parser.add_argument('subreddit', metavar='subreddit',
-                        type=str, help='Name of a subreddit, e.g., AskReddit')
-    parser.add_argument('-c', '--categories',
+    parser.add_argument('-r',
+                        metavar='subreddits',
+                        nargs='+',
+                        required=True,
+                        help='Names of subreddits to download, e.g., AskReddit')
+    parser.add_argument('-f',
+                        metavar='categories',
                         default=SubredditDownloader.DEFAULT_CATEGORIES,
                         nargs='+',
                         help='Categories of posts to download (default: %(default)s)')
-    parser.add_argument('-pl', '--post-limit',
+    parser.add_argument('-l',
                         default=SubredditDownloader.DEFAULT_POST_LIMIT,
                         metavar='post_limit',
                         type=check_positive,
                         help='Limit the number of submissions downloaded in each category (default: %(default)s, i.e., all submissions)')
+    parser.add_argument('--skip-comments',
+                        default=False,
+                        action='store_true',
+                        help='When true, saveddit will not save comments to a comments.json file')
     args = parser.parse_args()
     main(args)
