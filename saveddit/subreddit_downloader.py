@@ -1,4 +1,6 @@
-import coloredlogs, logging, verboselogs
+import coloredlogs
+import logging
+import verboselogs
 from datetime import datetime
 import os
 import json
@@ -8,409 +10,518 @@ from pprint import pprint
 import re
 import requests
 import urllib.request
+import youtube_dl
+
 
 class SubredditDownloader:
-  REDDIT_CLIENT_ID = "aCjKJeNwZw_Efg"
-  REDDIT_CLIENT_SECRET="1Hul2-xgH_11r6limxcdtnPFQ4V5AQ"
-  IMGUR_CLIENT_ID = "33982ca3205a4a2"
-  DEFAULT_CATEGORIES=["hot", "new", "rising", "controversial", "top", "gilded"]
-  DEFAULT_POST_LIMIT=None
+    REDDIT_CLIENT_ID = "aCjKJeNwZw_Efg"
+    REDDIT_CLIENT_SECRET = "1Hul2-xgH_11r6limxcdtnPFQ4V5AQ"
+    IMGUR_CLIENT_ID = "33982ca3205a4a2"
+    DEFAULT_CATEGORIES = ["hot", "new", "rising",
+                          "controversial", "top", "gilded"]
+    DEFAULT_POST_LIMIT = None
 
-  def __init__(self, subreddit_name):
-    self.subreddit_name = subreddit_name
-    reddit = praw.Reddit(
-      client_id=SubredditDownloader.REDDIT_CLIENT_ID,
-      client_secret=SubredditDownloader.REDDIT_CLIENT_SECRET,
-      user_agent="saveddit (by /u/p_ranav)",
-    )
-    self.subreddit = reddit.subreddit(subreddit_name)
+    def __init__(self, subreddit_name):
+        self.subreddit_name = subreddit_name
+        reddit = praw.Reddit(
+            client_id=SubredditDownloader.REDDIT_CLIENT_ID,
+            client_secret=SubredditDownloader.REDDIT_CLIENT_SECRET,
+            user_agent="saveddit (by /u/p_ranav)",
+        )
+        self.subreddit = reddit.subreddit(subreddit_name)
 
-    self.logger = verboselogs.VerboseLogger(__name__)
-    level_styles = {
-      'critical': {'bold': True, 'color': 'red'},
-      'debug': {'color': 'green'},
-      'error': {'color': 'red'},
-      'info': {'color': 'white'},
-      'notice': {'color': 'magenta'},
-      'spam': {'color': 'white', 'faint': True},
-      'success': {'bold': True, 'color': 'green'},
-      'verbose': {'color': 'blue'},
-      'warning': {'color': 'yellow'}
-    }
-    coloredlogs.install(level='SPAM', logger=self.logger, fmt='%(message)s', level_styles=level_styles)
+        self.logger = verboselogs.VerboseLogger(__name__)
+        level_styles = {
+            'critical': {'bold': True, 'color': 'red'},
+            'debug': {'color': 'green'},
+            'error': {'color': 'red'},
+            'info': {'color': 'white'},
+            'notice': {'color': 'magenta'},
+            'spam': {'color': 'white', 'faint': True},
+            'success': {'bold': True, 'color': 'green'},
+            'verbose': {'color': 'blue'},
+            'warning': {'color': 'yellow'}
+        }
+        coloredlogs.install(level='SPAM', logger=self.logger,
+                            fmt='%(message)s', level_styles=level_styles)
 
-  def download(self, output_path, categories=DEFAULT_CATEGORIES, post_limit=DEFAULT_POST_LIMIT, comment_limit=0):
-    '''
-    categories: List of categories within the subreddit to download (see SubredditDownloader.DEFAULT_CATEGORIES)
-    post_limit: Number of posts to download (default: None, i.e., all posts)
-    comment_limit: Number of comment levels to download from submission (default: `0`, i.e., only top-level comments)
-      - to get all comments, set comment_limit to `None`
-    '''
-    root_dir = os.path.join(os.path.join(os.path.join(output_path, "www.reddit.com"), "r"), self.subreddit_name)
-    categories = categories
+    def download(self, output_path, categories=DEFAULT_CATEGORIES, post_limit=DEFAULT_POST_LIMIT, comment_limit=0):
+        '''
+        categories: List of categories within the subreddit to download (see SubredditDownloader.DEFAULT_CATEGORIES)
+        post_limit: Number of posts to download (default: None, i.e., all posts)
+        comment_limit: Number of comment levels to download from submission (default: `0`, i.e., only top-level comments)
+          - to get all comments, set comment_limit to `None`
+        '''
+        root_dir = os.path.join(os.path.join(os.path.join(
+            output_path, "www.reddit.com"), "r"), self.subreddit_name)
+        categories = categories
 
-    for c in categories:
-      self.logger.notice("Downloading from /r/" + self.subreddit_name + "/" + c + "/")
-      category_dir = os.path.join(root_dir, c)
-      if not os.path.exists(category_dir):
-        os.makedirs(category_dir)
-      category_function = getattr(self.subreddit, c)
+        for c in categories:
+            self.logger.notice("Downloading from /r/" +
+                               self.subreddit_name + "/" + c + "/")
+            category_dir = os.path.join(root_dir, c)
+            if not os.path.exists(category_dir):
+                os.makedirs(category_dir)
+            category_function = getattr(self.subreddit, c)
 
-      for i, submission in enumerate(category_function(limit=post_limit)):
-        has_url = getattr(submission, "url", None)
-        if has_url:
-          title = submission.title
-          title = title.translate({ord(c): " " for c in "!@#$%^&*()[]{};:,./<>?\|`~-=_+"})
+            for i, submission in enumerate(category_function(limit=post_limit)):
+                prefix_str = '#' + str(i) + ' '
+                has_url = getattr(submission, "url", None)
+                if has_url:
+                    title = submission.title
+                    self.logger.verbose(prefix_str + '"' + title + '"')
+                    title = title.translate(
+                        {ord(c): " " for c in "!@#$%^&*()[]{};:,./<>?\|`~-=_+"})
 
-          # Truncate title
-          if len(title) > 127:
-            title = title[0:124]
-            title += "..."
+                    # Truncate title
+                    if len(title) > 127:
+                        title = title[0:124]
+                        title += "..."
 
-          # Prepare directory for the submission
-          post_dir = str(i).zfill(4) + "_" + title.replace(" ", "_")
-          submission_dir = os.path.join(category_dir, post_dir)
-          if not os.path.exists(submission_dir):
-            os.makedirs(submission_dir)
+                    # Prepare directory for the submission
+                    post_dir = str(i).zfill(4) + "_" + title.replace(" ", "_")
+                    submission_dir = os.path.join(category_dir, post_dir)
+                    if not os.path.exists(submission_dir):
+                        os.makedirs(submission_dir)
 
-          self.logger.spam("#" + str(i) + " Processing `" + submission.url + "`")
+                    self.logger.spam(
+                        prefix_str + "Processing `" + submission.url + "`")
 
-          success = False
+                    success = False
 
-          if self.is_direct_link_to_content(submission.url, [".png", ".jpg", ".jpeg", ".mp4", ".gif"]):
-            files_dir = os.path.join(submission_dir, "files")
-            if not os.path.exists(files_dir):
-              os.makedirs(files_dir)
+                    if self.is_direct_link_to_content(submission.url, [".png", ".jpg", ".jpeg", ".mp4", ".gif"]):
+                        files_dir = os.path.join(submission_dir, "files")
+                        if not os.path.exists(files_dir):
+                            os.makedirs(files_dir)
 
-            filename = submission.url.split("/")[-1]
-            self.logger.spam("#" + str(i) + " This is a direct link to a " + filename.split(".")[-1] + " file")
-            save_path = os.path.join(files_dir, filename)
-            self.download_direct_link(submission, save_path)
-            success = True
-          elif self.is_reddit_gallery(submission.url):
-            files_dir = os.path.join(submission_dir, "files")
-            if not os.path.exists(files_dir):
-              os.makedirs(files_dir)
+                        filename = submission.url.split("/")[-1]
+                        self.logger.spam(
+                            prefix_str + "This is a direct link to a " + filename.split(".")[-1] + " file")
+                        save_path = os.path.join(files_dir, filename)
+                        self.download_direct_link(submission, save_path)
+                        success = True
+                    elif self.is_youtube_link(submission.url) or self.is_supported_by_youtubedl(submission.url):
+                        files_dir = os.path.join(submission_dir, "files")
+                        if not os.path.exists(files_dir):
+                            os.makedirs(files_dir)
 
-            self.logger.spam("#" + str(i) + " This is a reddit gallery")
-            self.download_reddit_gallery(submission, files_dir)
-            success = True
-          elif self.is_reddit_video(submission.url):
-            files_dir = os.path.join(submission_dir, "files")
-            if not os.path.exists(files_dir):
-              os.makedirs(files_dir)
+                        if self.is_youtube_link(submission.url):
+                            self.logger.spam(
+                                prefix_str + "This is a youtube link")
+                        else:
+                            self.logger.spam(
+                                prefix_str + "This link is supported by a youtube-dl extractor")
+                        self.download_youtube_video(submission.url, files_dir)
+                        success = True
+                    elif self.is_reddit_gallery(submission.url):
+                        files_dir = os.path.join(submission_dir, "files")
+                        if not os.path.exists(files_dir):
+                            os.makedirs(files_dir)
 
-            self.logger.spam("#" + str(i) + " This is a reddit video")
-            self.download_reddit_video(submission, files_dir)
-            success = True
-          elif self.is_gfycat_link(submission.url) or self.is_redgifs_link(submission.url):
-            files_dir = os.path.join(submission_dir, "files")
-            if not os.path.exists(files_dir):
-              os.makedirs(files_dir)
+                        self.logger.spam(
+                            prefix_str + "This is a reddit gallery")
+                        self.download_reddit_gallery(submission, files_dir)
+                        success = True
+                    elif self.is_reddit_video(submission.url):
+                        files_dir = os.path.join(submission_dir, "files")
+                        if not os.path.exists(files_dir):
+                            os.makedirs(files_dir)
 
-            if self.is_gfycat_link(submission.url):
-              self.logger.spam("#" + str(i) + " This is a gfycat link")
+                        self.logger.spam(prefix_str + "This is a reddit video")
+                        self.download_reddit_video(submission, files_dir)
+                        success = True
+                    elif self.is_gfycat_link(submission.url) or self.is_redgifs_link(submission.url):
+                        files_dir = os.path.join(submission_dir, "files")
+                        if not os.path.exists(files_dir):
+                            os.makedirs(files_dir)
+
+                        if self.is_gfycat_link(submission.url):
+                            self.logger.spam(
+                                prefix_str + "This is a gfycat link")
+                        else:
+                            self.logger.spam(
+                                prefix_str + "This is a redgif link")
+                        self.download_gfycat_or_redgif(submission, files_dir)
+                        success = True
+                    elif self.is_imgur_album(submission.url):
+                        files_dir = os.path.join(submission_dir, "files")
+                        if not os.path.exists(files_dir):
+                            os.makedirs(files_dir)
+
+                        self.logger.spam(prefix_str + "This is an imgur album")
+                        self.download_imgur_album(submission, files_dir)
+                        success = True
+                    elif self.is_imgur_image(submission.url):
+                        files_dir = os.path.join(submission_dir, "files")
+                        if not os.path.exists(files_dir):
+                            os.makedirs(files_dir)
+
+                        self.logger.spam(
+                            prefix_str + "This is an imgur image or video")
+                        self.download_imgur_image(submission, files_dir)
+                        success = True
+                    elif self.is_self_post(submission):
+                        self.logger.spam(prefix_str + "This is a self-post")
+                        success = True
+                    else:
+                        success = True
+                        pass
+
+                    # Download HTML of link
+                    self.logger.spam(prefix_str + "Downloading HTML")
+                    self.download_html(submission.url, submission_dir)
+
+                    # Download selftext and submission meta
+                    self.logger.spam(prefix_str + "Saving submission.json")
+                    self.download_submission_meta(submission, submission_dir)
+
+                    # Downlaod comments if requested
+                    if comment_limit == None:
+                        self.logger.spam(
+                            prefix_str + "Saving all comments to comments.json")
+                    else:
+                        self.logger.spam(
+                            prefix_str + "Saving top-level comments to comments.json")
+                    self.download_comments(
+                        submission, submission_dir, comment_limit)
+
+                    if success:
+                        self.logger.spam(
+                            prefix_str + "Saved to " + submission_dir + "\n")
+                    else:
+                        self.logger.warning(
+                            prefix_str + "Failed to download from link " + submission.url + "\n"
+                        )
+
+    def is_direct_link_to_content(self, url, supported_file_formats):
+        url_leaf = url.split("/")[-1]
+        return any([i in url_leaf for i in supported_file_formats]) and ".gifv" not in url_leaf
+
+    def download_direct_link(self, submission, output_path):
+        try:
+            urllib.request.urlretrieve(submission.url, output_path)
+        except Exception as e:
+            self.logger.error(e)
+
+    def is_youtube_link(self, url):
+        return "youtube.com" in url or "youtu.be" in url
+
+    def is_supported_by_youtubedl(self, url):
+        if "flickr.com/photos" in url:
+            return False
+
+        extractors = youtube_dl.extractor.gen_extractors()
+        for e in extractors:
+            if e.suitable(url) and e.IE_NAME != 'generic':
+                return True
+        return False
+
+    def download_youtube_video(self, url, output_path):
+        download_options = {
+            'format': "299+bestaudio/298+bestaudio/137+bestaudio/136+bestaudio/best",
+            'quiet': True,
+            'ignoreerrors': True,
+            'nooverwrites': True,
+            'continuedl': True,
+            'outtmpl': output_path + '/%(id)s.%(ext)s'
+        }
+        self.logger.spam("   - Downloading " + url + " with youtube-dl")
+        with youtube_dl.YoutubeDL(download_options) as ydl:
+            ydl.download([url])
+
+    def is_reddit_gallery(self, url):
+        return "reddit.com/gallery" in url
+
+    def download_reddit_gallery(self, submission, output_path):
+        gallery_data = getattr(submission, "gallery_data", None)
+        media_metadata = getattr(submission, "media_metadata", None)
+        self.logger.spam(
+            "   - Looking for submission.gallery_data and submission.media_metadata")
+
+        if gallery_data == None and media_metadata == None:
+            # gallery_data not in submission
+            # could be a crosspost
+            crosspost_parent_list = getattr(
+                submission, "crosspost_parent_list", None)
+            if crosspost_parent_list != None:
+                self.logger.spam(
+                    "   - This is a crosspost to a reddit gallery")
+                first_parent = crosspost_parent_list[0]
+                gallery_data = first_parent["gallery_data"]
+                media_metadata = first_parent["media_metadata"]
+
+        if gallery_data != None and media_metadata != None:
+            self.logger.spam("   - This reddit gallery has " +
+                             str(len(gallery_data["items"])) + " images")
+            for j, item in enumerate(gallery_data["items"]):
+                media_id = item["media_id"]
+                item_metadata = media_metadata[media_id]
+                item_format = item_metadata['m']
+                if "image/" in item_format or "video/" in item_format:
+                    if not os.path.exists(output_path):
+                        os.makedirs(output_path)
+                    if "image/" in item_format:
+                        item_format = item_format.split("image/")[-1]
+                    elif "video/" in item_format:
+                        item_format = item_format.split("video/")[-1]
+                    item_filename = media_id + "." + item_format
+                    item_url = item_metadata["s"]["u"]
+                    save_path = os.path.join(output_path, item_filename)
+                    try:
+                        urllib.request.urlretrieve(item_url, save_path)
+                    except Exception as e:
+                        print(e)
+
+    def is_reddit_video(self, url):
+        return "v.redd.it" in url
+
+    def download_reddit_video(self, submission, output_path):
+        media = getattr(submission, "media", None)
+        media_id = submission.url.split("v.redd.it/")[-1]
+
+        self.logger.spam("   - Looking for submission.media")
+
+        if media == None:
+            # link might be a crosspost
+            crosspost_parent_list = getattr(
+                submission, "crosspost_parent_list", None)
+            if crosspost_parent_list != None:
+                self.logger.spam("   - This is a crosspost to a reddit video")
+                first_parent = crosspost_parent_list[0]
+                media = first_parent["media"]
+
+        if media != None:
+            self.logger.spam("   - Downloading video component")
+            url = media["reddit_video"]["fallback_url"]
+            video_save_path = os.path.join(
+                output_path, media_id + "_video.mp4")
+            try:
+                urllib.request.urlretrieve(url, video_save_path)
+            except Exception as e:
+                print(e)
+
+            # Download the audio
+            self.logger.spam("   - Downloading audio component")
+            audio_downloaded = False
+            audio_save_path = os.path.join(
+                output_path, media_id + "_audio.mp4")
+            try:
+                urllib.request.urlretrieve(
+                    submission.url + "/DASH_audio.mp4", audio_save_path)
+                audio_downloaded = True
+            except Exception as e:
+                pass
+
+            if audio_downloaded == True:
+                # Merge mp4 files
+                self.logger.spam(
+                    "   - Merging video & audio components with ffmpeg")
+                output_save_path = os.path.join(output_path, media_id + ".mp4")
+                input_video = ffmpeg.input(video_save_path)
+                input_audio = ffmpeg.input(audio_save_path)
+                ffmpeg.concat(input_video, input_audio, v=1, a=1)\
+                    .output(output_save_path)\
+                    .global_args('-loglevel', 'error')\
+                      .global_args('-y')\
+                    .run()
+                self.logger.spam("  - Done merging with ffmpeg")
             else:
-              self.logger.spam("#" + str(i) + " This is a redgif link")
-            self.download_gfycat_or_redgif(submission, files_dir)
-            success = True
-          elif self.is_imgur_album(submission.url):
-            files_dir = os.path.join(submission_dir, "files")
-            if not os.path.exists(files_dir):
-              os.makedirs(files_dir)
+                self.logger.spam(
+                    "   - This video does not have an audio component")
 
-            self.logger.spam("#" + str(i) + " This is an imgur album")
-            self.download_imgur_album(submission, files_dir)
-            success = True
-          elif self.is_imgur_image(submission.url):
-            files_dir = os.path.join(submission_dir, "files")
-            if not os.path.exists(files_dir):
-              os.makedirs(files_dir)
+    def is_gfycat_link(self, url):
+        return "gfycat.com/" in url
 
-            self.logger.spam("#" + str(i) + " This is an imgur image or video")
-            self.download_imgur_image(submission, files_dir)
-            success = True
-          elif self.is_self_post(submission):
-            self.logger.spam("#" + str(i) + " This is a self-post")
-            success = True
-          else:
-            success = True
+    def is_redgifs_link(self, url):
+        return "redgifs.com/" in url
 
-          # Download selftext and submission meta
-          self.logger.spam("#" + str(i) + " Saving submission.json")
-          self.download_submission_meta(submission, submission_dir)
+    def download_gfycat_or_redgif(self, submission, output_dir):
+        self.logger.spam(
+            "   - Looking for submission.preview.reddit_video_preview.fallback_url")
+        if "reddit_video_preview" in submission.preview:
+            if "fallback_url" in submission.preview["reddit_video_preview"]:
+                fallback_url = submission.preview["reddit_video_preview"]["fallback_url"]
+                file_format = fallback_url.split(".")[-1]
+                filename = submission.url.split("/")[-1] + "." + file_format
+                save_path = os.path.join(output_dir, filename)
+                try:
+                    urllib.request.urlretrieve(fallback_url, save_path)
+                except Exception as e:
+                    self.logger.error(e)
 
-          # Downlaod comments if requested
-          if comment_limit == None:
-            self.logger.spam("#" + str(i) + " Saving all comments to comments.json")
-          else:
-            self.logger.spam("#" + str(i) + " Saving top-level comments to comments.json")
-          self.download_comments(submission, submission_dir, comment_limit)
+    def is_imgur_album(self, url):
+        return "imgur.com/a/" in url or "imgur.com/gallery/" in url
 
-          if success:
-            self.logger.success("#" + str(i) + " Saved to " + submission_dir + "\n")
+    def get_imgur_album_images_count(self, album_id):
+        request = "https://api.imgur.com/3/album/" + album_id
+        res = requests.get(request, headers={
+                           "Authorization": "Client-ID " + SubredditDownloader.IMGUR_CLIENT_ID})
+        if res.status_code == 200:
+            return res.json()["data"]["images_count"]
+        else:
+            self.logger.spam("   - This imgur album is empty")
+            return 0
 
-  def is_direct_link_to_content(self, url, supported_file_formats):
-    url_leaf = url.split("/")[-1]
-    return any([i in url_leaf for i in supported_file_formats]) and ".gifv" not in url_leaf
+    def get_imgur_image_meta(self, image_id):
+        request = "https://api.imgur.com/3/image/" + image_id
+        res = requests.get(request, headers={
+                           "Authorization": "Client-ID " + SubredditDownloader.IMGUR_CLIENT_ID})
+        return res.json()["data"]
 
-  def download_direct_link(self, submission, output_path):
-    try:
-      urllib.request.urlretrieve(submission.url, output_path)
-    except Exception as e:
-      self.logger.error(e)
+    def download_imgur_album(self, submission, output_dir):
+        # Imgur album
+        album_id = ""
+        if "imgur.com/a/" in submission.url:
+            album_id = submission.url.split("imgur.com/a/")[-1]
+        elif "imgur.com/gallery/" in submission.url:
+            album_id = submission.url.split("imgur.com/gallery/")[-1]
 
-  def is_reddit_gallery(self, url):
-    return "reddit.com/gallery" in url
+        self.logger.spam("   - Album ID " + album_id)
 
-  def download_reddit_gallery(self, submission, output_path):
-    gallery_data = getattr(submission, "gallery_data", None)
-    media_metadata = getattr(submission, "media_metadata", None)
-    self.logger.spam("   - Looking for submission.gallery_data and submission.media_metadata")
+        images_count = self.get_imgur_album_images_count(album_id)
+        if images_count > 0:
+            request = "https://api.imgur.com/3/album/" + album_id
+            res = requests.get(request, headers={
+                               "Authorization": "Client-ID " + SubredditDownloader.IMGUR_CLIENT_ID})
+            self.logger.spam("   - This imgur album has " +
+                             str(len(res.json()["data"]["images"])) + " images")
+            for i, image in enumerate(res.json()["data"]["images"]):
+                url = image["link"]
+                filename = str(i).zfill(4) + "_" + url.split("/")[-1]
+                save_path = os.path.join(output_dir, filename)
+                try:
+                    if not os.path.exists(output_dir):
+                        os.makedirs(output_dir)
+                    urllib.request.urlretrieve(url, save_path)
+                except Exception as e:
+                    print(e)
 
-    if gallery_data == None and media_metadata == None:
-      # gallery_data not in submission
-      # could be a crosspost
-      crosspost_parent_list = getattr(submission, "crosspost_parent_list", None)
-      if crosspost_parent_list != None:
-        self.logger.spam("   - This is a crosspost to a reddit gallery")
-        first_parent = crosspost_parent_list[0]
-        gallery_data = first_parent["gallery_data"]
-        media_metadata = first_parent["media_metadata"]
+    def is_imgur_image(self, url):
+        return "imgur.com" in url
 
-    if gallery_data != None and media_metadata != None:
-      self.logger.spam("   - This reddit gallery has " + str(len(gallery_data["items"])) + " images")
-      for j, item in enumerate(gallery_data["items"]):
-        media_id = item["media_id"]
-        item_metadata = media_metadata[media_id]
-        item_format = item_metadata['m']
-        if "image/" in item_format or "video/" in item_format:
-          if not os.path.exists(output_path):
-            os.makedirs(output_path)
-          if "image/" in item_format:
-            item_format = item_format.split("image/")[-1]
-          elif "video/" in item_format:
-            item_format = item_format.split("video/")[-1]
-          item_filename = media_id + "." + item_format
-          item_url = item_metadata["s"]["u"]
-          save_path = os.path.join(output_path, item_filename)
-          try:
-            urllib.request.urlretrieve(item_url, save_path)
-          except Exception as e:
+    def download_imgur_image(self, submission, output_dir):
+        # Other imgur content, e.g., .gifv, '.mp4', '.jpg', etc.
+        url_leaf = submission.url.split("/")[-1]
+        if "." in url_leaf:
+            image_id = url_leaf.split(".")[0]
+        else:
+            image_id = url_leaf
+        data = self.get_imgur_image_meta(image_id)
+        url = data["link"]
+        image_type = data["type"]
+        if "video/" in image_type:
+            self.logger.spam("   - This is an imgur link to a video file")
+            image_type = image_type.split("video/")[-1]
+        elif "image/" in image_type:
+            self.logger.spam("   - This is an imgur link to an image file")
+            image_type = image_type.split("image/")[-1]
+
+        filename = image_id + "." + image_type
+        save_path = os.path.join(output_dir, filename)
+
+        try:
+            urllib.request.urlretrieve(url, save_path)
+        except Exception as e:
             print(e)
 
-  def is_reddit_video(self, url):
-    return "v.redd.it" in url
+    def download_comments(self, submission, output_dir, comment_limit):
+        # Save comments - Breath first unwrap of comment forest
+        if comment_limit == None:
+            self.logger.spam("   - Comment limit set to " +
+                             str(comment_limit) + ". Downloading all comments")
+        elif comment_limit == 0:
+            self.logger.spam(
+                "   - Comment limit set to 0. Downloading only top-level comments")
+        comments_list = []
+        with open(os.path.join(output_dir, 'comments.json'), 'w') as file:
+            submission.comments.replace_more(limit=comment_limit)
+            for comment in submission.comments.list():
+                comment_dict = {}
+                try:
+                    if comment.author:
+                        comment_dict["author"] = comment.author.name
+                    else:
+                        comment_dict["author"] = None
+                    comment_dict["body"] = comment.body
+                    comment_dict["created_utc"] = int(comment.created_utc)
+                    comment_dict["distinguished"] = comment.distinguished
+                    comment_dict["downs"] = comment.downs
+                    comment_dict["edited"] = comment.edited
+                    comment_dict["id"] = comment.id
+                    comment_dict["is_submitter"] = comment.is_submitter
+                    comment_dict["link_id"] = comment.link_id
+                    comment_dict["parent_id"] = comment.parent_id
+                    comment_dict["permalink"] = comment.permalink
+                    comment_dict["score"] = comment.score
+                    comment_dict["stickied"] = comment.stickied
+                    comment_dict["subreddit_name_prefixed"] = comment.subreddit_name_prefixed
+                    comment_dict["subreddit_id"] = comment.subreddit_id
+                    comment_dict["total_awards_received"] = comment_dict.total_awards_received
+                    comment_dict["ups"] = comment.ups
+                    comment_dict["upvote_ratio"] = comment.upvote_ratio
+                except Exception as e:
+                    pass
+                comments_list.append(comment_dict)
+            file.write(json.dumps(comments_list, indent=2))
 
-  def download_reddit_video(self, submission, output_path):
-    media = getattr(submission, "media", None)
-    media_id = submission.url.split("v.redd.it/")[-1]
+    def is_self_post(self, submission):
+        return submission.is_self
 
-    self.logger.spam("   - Looking for submission.media")
+    def download_submission_meta(self, submission, submission_dir):
+        submission_dict = {}
+        if submission.author:
+            submission_dict["author"] = submission.author.name
+        submission_dict["author"] = None
+        submission_dict["created_utc"] = int(submission.created_utc)
+        submission_dict["distinguished"] = submission.distinguished
+        submission_dict["downs"] = submission.downs
+        submission_dict["edited"] = submission.edited
+        submission_dict["id"] = submission.id
+        submission_dict["link_flair_text"] = submission.link_flair_text
+        submission_dict["locked"] = submission.locked
+        submission_dict["num_comments"] = submission.num_comments
+        submission_dict["num_crossposts"] = submission.num_crossposts
+        submission_dict["permalink"] = submission.permalink
+        submission_dict["selftext"] = submission.selftext
+        submission_dict["selftext"] = submission.selftext
+        submission_dict["selftext_html"] = submission.selftext_html
+        submission_dict["send_replies"] = submission.send_replies
+        submission_dict["spoiler"] = submission.spoiler
+        submission_dict["stickied"] = submission.stickied
+        submission_dict["subreddit_name_prefixed"] = submission.subreddit_name_prefixed
+        submission_dict["subreddit_id"] = submission.subreddit_id
+        submission_dict["subreddit_subscribers"] = submission.subreddit_subscribers
+        submission_dict["subreddit_type"] = submission.subreddit_type
+        submission_dict["title"] = submission.title
+        submission_dict["total_awards_received"] = submission.total_awards_received
+        submission_dict["ups"] = submission.ups
+        submission_dict["upvote_ratio"] = submission.upvote_ratio
+        submission_dict["url"] = submission.url
 
-    if media == None:
-      # link might be a crosspost
-      crosspost_parent_list = getattr(submission, "crosspost_parent_list", None)
-      if crosspost_parent_list != None:
-        self.logger.spam("   - This is a crosspost to a reddit video")
-        first_parent = crosspost_parent_list[0]
-        media = first_parent["media"]
+        with open(os.path.join(submission_dir, "submission.json"), 'w') as file:
+            file.write(json.dumps(submission_dict, indent=2))
 
-    if media != None:
-      self.logger.spam("   - Downloading video component")
-      url = media["reddit_video"]["fallback_url"]
-      video_save_path = os.path.join(output_path, media_id + "_video.mp4")
-      try:
-        urllib.request.urlretrieve(url, video_save_path)
-      except Exception as e:
-        print(e)
-
-      # Download the audio
-      self.logger.spam("   - Downloading audio component")
-      audio_downloaded = False
-      audio_save_path = os.path.join(output_path, media_id + "_audio.mp4")
-      try:
-        urllib.request.urlretrieve(submission.url + "/DASH_audio.mp4", audio_save_path)
-        audio_downloaded = True
-      except Exception as e:
-        pass
-
-      if audio_downloaded == True:
-        # Merge mp4 files
-        self.logger.spam("   - Merging video & audio components with ffmpeg")
-        output_save_path = os.path.join(output_path, media_id + ".mp4")
-        input_video = ffmpeg.input(video_save_path)
-        input_audio = ffmpeg.input(audio_save_path)
-        ffmpeg.concat(input_video, input_audio, v=1, a=1)\
-          .output(output_save_path)\
-            .global_args('-loglevel', 'error')\
-              .global_args('-y')\
-                .run()
-        self.logger.spam("  - Done merging with ffmpeg")
-      else:
-        self.logger.spam("   - This video does not have an audio component")
-
-  def is_gfycat_link(self, url):
-    return "gfycat.com/" in url
-
-  def is_redgifs_link(self, url):
-    return "redgifs.com/" in url
-
-  def download_gfycat_or_redgif(self, submission, output_dir):
-    self.logger.spam("   - Looking for submission.preview.reddit_video_preview.fallback_url")
-    if "reddit_video_preview" in submission.preview:
-      if "fallback_url" in submission.preview["reddit_video_preview"]:
-        fallback_url = submission.preview["reddit_video_preview"]["fallback_url"]
-        file_format = fallback_url.split(".")[-1]
-        filename = submission.url.split("/")[-1] + "." + file_format
-        save_path = os.path.join(output_dir, filename)
+    def download_html(self, url, output_path):
         try:
-          urllib.request.urlretrieve(fallback_url, save_path)
+            response = urllib.request.urlopen(url)
         except Exception as e:
-          self.logger.error(e)
+            return False
 
-  def is_imgur_album(self, url):
-    return "imgur.com/a/" in url or "imgur.com/gallery/" in url
+        if response.getcode() == 200:
 
-  def get_imgur_album_images_count(self, album_id):
-    request = "https://api.imgur.com/3/album/" + album_id
-    res = requests.get(request, headers={"Authorization": "Client-ID " + SubredditDownloader.IMGUR_CLIENT_ID})
-    if res.status_code == 200:
-      return res.json()["data"]["images_count"]
-    else:
-      self.logger.spam("   - This imgur album is empty")
-      return 0
+            try:
+                html = response.read().decode('utf-8')
+            except Exception as e:
+                return False
 
-  def get_imgur_image_meta(self, image_id):
-    request = "https://api.imgur.com/3/image/" + image_id
-    res = requests.get(request, headers={"Authorization": "Client-ID " + SubredditDownloader.IMGUR_CLIENT_ID})
-    return res.json()["data"]
+            files_dir = os.path.join(output_path, "html")
+            if not os.path.exists(files_dir):
+                os.makedirs(files_dir)
 
-  def download_imgur_album(self, submission, output_dir):
-    # Imgur album
-    album_id = ""
-    if "imgur.com/a/" in submission.url:
-      album_id = submission.url.split("imgur.com/a/")[-1]
-    elif "imgur.com/gallery/" in submission.url:
-      album_id = submission.url.split("imgur.com/gallery/")[-1]
+            with open(os.path.join(files_dir, "webpage.html"), 'w') as file:
+                file.write(html)
 
-    self.logger.spam("   - Album ID " + album_id)
+            return True
 
-    images_count = self.get_imgur_album_images_count(album_id)
-    if images_count > 0:
-      request = "https://api.imgur.com/3/album/" + album_id
-      res = requests.get(request, headers={"Authorization": "Client-ID " + SubredditDownloader.IMGUR_CLIENT_ID})
-      self.logger.spam("   - This imgur album has " + str(len(res.json()["data"]["images"])) + " images")
-      for i, image in enumerate(res.json()["data"]["images"]):
-        url = image["link"]
-        filename = str(i).zfill(4) + "_" + url.split("/")[-1]
-        save_path = os.path.join(output_dir, filename)
-        try:
-          if not os.path.exists(output_dir):
-            os.makedirs(output_dir)
-          urllib.request.urlretrieve(url, save_path)
-        except Exception as e:
-          print(e)
-
-  def is_imgur_image(self, url):
-    return "imgur.com" in url
-
-  def download_imgur_image(self, submission, output_dir):
-    # Other imgur content, e.g., .gifv, '.mp4', '.jpg', etc.
-    url_leaf = submission.url.split("/")[-1]
-    if "." in url_leaf:
-      image_id = url_leaf.split(".")[0]
-    else:
-      image_id = url_leaf
-    data = self.get_imgur_image_meta(image_id)
-    url = data["link"]
-    image_type = data["type"]
-    if "video/" in image_type:
-      self.logger.spam("   - This is an imgur link to a video file")
-      image_type = image_type.split("video/")[-1]
-    elif "image/" in image_type:
-      self.logger.spam("   - This is an imgur link to an image file")
-      image_type = image_type.split("image/")[-1]
-
-    filename = image_id + "." + image_type
-    save_path = os.path.join(output_dir, filename)
-
-    try:
-      urllib.request.urlretrieve(url, save_path)
-    except Exception as e:
-      print(e)
-
-  def download_comments(self, submission, output_dir, comment_limit):
-    # Save comments - Breath first unwrap of comment forest
-    if comment_limit == None:
-      self.logger.spam("   - Comment limit set to " + str(comment_limit) + ". Downloading all comments")
-    elif comment_limit == 0:
-      self.logger.spam("   - Comment limit set to 0. Downloading only top-level comments")
-    comments_list = []
-    with open(os.path.join(output_dir, 'comments.json'), 'w') as file:
-      submission.comments.replace_more(limit=comment_limit)
-      for comment in submission.comments.list():
-        comment_dict = {}
-        try:
-          if comment.author:
-            comment_dict["author"] = comment.author.name
-          else:
-            comment_dict["author"] = None
-          comment_dict["body"] = comment.body
-          comment_dict["created_utc"] = int(comment.created_utc)
-          comment_dict["distinguished"] = comment.distinguished
-          comment_dict["downs"] = comment.downs
-          comment_dict["edited"] = comment.edited
-          comment_dict["id"] = comment.id
-          comment_dict["is_submitter"] = comment.is_submitter
-          comment_dict["link_id"] = comment.link_id
-          comment_dict["parent_id"] = comment.parent_id
-          comment_dict["permalink"] = comment.permalink
-          comment_dict["score"] = comment.score
-          comment_dict["stickied"] = comment.stickied
-          comment_dict["subreddit_name_prefixed"] = comment.subreddit_name_prefixed
-          comment_dict["subreddit_id"] = comment.subreddit_id
-          comment_dict["total_awards_received"] = comment_dict.total_awards_received
-          comment_dict["ups"] = comment.ups
-          comment_dict["upvote_ratio"] = comment.upvote_ratio
-        except Exception as e:
-          pass
-        comments_list.append(comment_dict)
-      file.write(json.dumps(comments_list, indent=2))
-
-  def is_self_post(self, submission):
-    return submission.is_self
-
-  def download_submission_meta(self, submission, submission_dir):
-    submission_dict = {}
-    if submission.author:
-      submission_dict["author"] = submission.author.name
-    submission_dict["author"] = None
-    submission_dict["created_utc"] = int(submission.created_utc)
-    submission_dict["distinguished"] = submission.distinguished
-    submission_dict["downs"] = submission.downs
-    submission_dict["edited"] = submission.edited
-    submission_dict["id"] = submission.id
-    submission_dict["link_flair_text"] = submission.link_flair_text
-    submission_dict["locked"] = submission.locked
-    submission_dict["num_comments"] = submission.num_comments
-    submission_dict["num_crossposts"] = submission.num_crossposts
-    submission_dict["permalink"] = submission.permalink
-    submission_dict["selftext"] = submission.selftext
-    submission_dict["selftext"] = submission.selftext
-    submission_dict["selftext_html"] = submission.selftext_html
-    submission_dict["send_replies"] = submission.send_replies
-    submission_dict["spoiler"] = submission.spoiler
-    submission_dict["stickied"] = submission.stickied
-    submission_dict["subreddit_name_prefixed"] = submission.subreddit_name_prefixed
-    submission_dict["subreddit_id"] = submission.subreddit_id
-    submission_dict["subreddit_subscribers"] = submission.subreddit_subscribers
-    submission_dict["subreddit_type"] = submission.subreddit_type
-    submission_dict["title"] = submission.title
-    submission_dict["total_awards_received"] = submission.total_awards_received
-    submission_dict["ups"] = submission.ups
-    submission_dict["upvote_ratio"] = submission.upvote_ratio
-    submission_dict["url"] = submission.url
-
-    with open(os.path.join(submission_dir, "submission.json"), 'w') as file:
-      file.write(json.dumps(submission_dict, indent=2))
+        else:
+            return False
