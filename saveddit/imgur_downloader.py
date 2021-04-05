@@ -3,7 +3,6 @@ import requests
 import urllib
 
 IMGUR_CLIENT_ID = "33982ca3205a4a2"
-IMGUR_CLIENT_SECRET = "731679375fb1f5753d8bec6ae8f97bb8bee09c09"
 
 def get_imgur_album_images_count(album_id):
   request = "https://api.imgur.com/3/album/" + album_id
