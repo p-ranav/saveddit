@@ -148,7 +148,7 @@ class SubredditDownloader:
           self.download_comments(submission, submission_dir, comment_limit)
 
           if success:
-            self.logger.success("#" + str(i) + " Saved to " + submission_dir)
+            self.logger.success("#" + str(i) + " Saved to " + submission_dir + "\n")
 
   def is_direct_link_to_content(self, url, supported_file_formats):
     url_leaf = url.split("/")[-1]
@@ -247,6 +247,8 @@ class SubredditDownloader:
               .global_args('-y')\
                 .run()
         self.logger.spam("  - Done merging with ffmpeg")
+      else:
+        self.logger.spam("   - This video does not have an audio component")
 
   def is_gfycat_link(self, url):
     return "gfycat.com/" in url

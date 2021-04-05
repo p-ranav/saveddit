@@ -27,8 +27,7 @@ def main(args):
 if __name__ == "__main__":
   print(asciiart())
 
-  parser = argparse.ArgumentParser(
-    prog="saveddit")
+  parser = argparse.ArgumentParser(prog="saveddit")
   parser.add_argument('subreddit', metavar='subreddit', type=str, help='Name of a subreddit, e.g., AskReddit')
   parser.add_argument('-c', '--categories',
                       default=SubredditDownloader.DEFAULT_CATEGORIES,
