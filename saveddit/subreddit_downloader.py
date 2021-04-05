@@ -12,6 +12,7 @@ class SubredditDownloader:
   REDDIT_CLIENT_ID = "aCjKJeNwZw_Efg"
   REDDIT_CLIENT_SECRET="1Hul2-xgH_11r6limxcdtnPFQ4V5AQ"
   IMGUR_CLIENT_ID = "33982ca3205a4a2"
+  DEFAULT_CATEGORIES=["hot", "new", "rising", "controversial", "top", "gilded"]
 
   def __init__(self, subreddit_name):
     self.subreddit_name = subreddit_name
@@ -21,7 +22,6 @@ class SubredditDownloader:
       user_agent="saveddit:v1.0.0 (by /u/p_ranav)",
     )
     self.subreddit = reddit.subreddit(subreddit_name)
-    self.default_categories = ["hot", "new", "rising", "controversial", "top", "gilded"]
 
     self.logger = verboselogs.VerboseLogger(__name__)
     level_styles = {
@@ -30,29 +30,22 @@ class SubredditDownloader:
       'error': {'color': 'red'},
       'info': {'color': 'white'},
       'notice': {'color': 'magenta'},
-      'spam': {'color': 'green', 'faint': True},
+      'spam': {'color': 'white', 'faint': True},
       'success': {'bold': True, 'color': 'green'},
       'verbose': {'color': 'blue'},
       'warning': {'color': 'yellow'}
     }
     coloredlogs.install(level='SPAM', logger=self.logger, fmt='%(message)s', level_styles=level_styles)
 
-  def download(self, output_path, category='all', post_limit=None, comment_limit=0):
+  def download(self, output_path, categories=DEFAULT_CATEGORIES, post_limit=None, comment_limit=0):
     '''
-    category: The category of posts to download (default: 'all', i.e., all categories: ["hot", "new", "rising", "controversial", "top", "gilded"])
+    categories: List of categories within the subreddit to download (see SubredditDownloader.DEFAULT_CATEGORIES)
     post_limit: Number of posts to download (default: None, i.e., all posts)
     comment_limit: Number of comment levels to download from submission (default: `0`, i.e., only top-level comments)
       - to get all comments, set comment_limit to `None`
     '''
     root_dir = os.path.join(os.path.join(os.path.join(output_path, "www.reddit.com"), "r"), self.subreddit_name)
-    categories = []
-    if category == 'all':
-      categories = self.default_categories
-    else:
-      if category in self.default_categories:
-        categories = [category]
-      else:
-        raise ValueError("Invalid category " + str(category) + ". Accepted values: " + json.dumps(self.default_categories))
+    categories = categories
 
     for c in categories:
       self.logger.notice("Downloading from /r/" + self.subreddit_name + "/" + c + "/")
@@ -112,11 +105,11 @@ class SubredditDownloader:
             self.logger.spam("#" + str(i) + " This is an imgur image or video")
             self.download_imgur_image(submission, submission_dir)
             success = True
+          elif self.is_self_post(submission):
+            self.logger.spam("#" + str(i) + " This is a self-post")
+            success = True
           else:
-            if not self.is_self_post(submission):
-              self.logger.warning("Skipping " + submission.url, " - not supported yet")
-            else:
-              self.logger.spam("#" + str(i) + " This is a self-post")
+            success = True
 
           # Download selftext and submission meta
           self.logger.spam("#" + str(i) + " Saving submission.json")
