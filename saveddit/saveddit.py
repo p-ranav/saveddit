@@ -14,12 +14,19 @@ def asciiart():
  URL     : https://github.com/p-ranav/saveddit
 '''
 
+def check_positive(value):
+  ivalue = int(value)
+  if ivalue <= 0:
+    raise argparse.ArgumentTypeError("%s is an invalid positive int value" % value)
+  return ivalue
+
 def main(args):
   downloader = SubredditDownloader(args.subreddit)
   downloader.download("/Users/pranav/Downloads/Reddit", categories=args.categories, post_limit=args.post_limit)
 
 if __name__ == "__main__":
   print(asciiart())
+
   parser = argparse.ArgumentParser(
     prog="saveddit")
   parser.add_argument('subreddit', metavar='subreddit', type=str, help='Name of a subreddit, e.g., AskReddit')
@@ -30,7 +37,7 @@ if __name__ == "__main__":
   parser.add_argument('-pl', '--post-limit',
                       default=SubredditDownloader.DEFAULT_POST_LIMIT,
                       metavar='post_limit',
-                      type=int,
+                      type=check_positive,
                       help='Limit the number of submissions downloaded in each category (default: %(default)s, i.e., all submissions)')
   args = parser.parse_args()
   main(args)
