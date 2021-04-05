@@ -1,3 +1,4 @@
+from datetime import datetime
 import os
 import praw
 import re
@@ -114,5 +115,32 @@ def download_subreddit(subreddit_name, output_path, limit=None):
             urllib.request.urlretrieve(url, save_path)
           except Exception as e:
             print(e)
+        else:
+          title = submission.title
+          title = title.translate({ord(c): " " for c in "!@#$%^&*()[]{};:,./<>?\|`~-=_+"})
+          post_dir = str(i).zfill(4) + "_" + title.replace(" ", "_")
+          save_dir = os.path.join(category_dir, post_dir)
+          if not os.path.exists(save_dir):
+            os.makedirs(save_dir)
 
-download_subreddit("interestingasfuck", "/Users/pranav/Downloads/Reddit/")
+          with open(os.path.join(save_dir, 'selftext.txt'), 'w') as selftext_file:
+            selftext_file.write(submission.selftext)
+
+          # Save comments - Breath first unwrap of comment forest
+          with open(os.path.join(save_dir, 'comments.txt'), 'w') as comment_file:
+            submission.comments.replace_more(limit=None)
+            count = 0
+            for comment in submission.comments.list():
+              comment_str = ""
+              try:
+                if count > 0:
+                  comment_str += "\n"
+                comment_timestamp = datetime.utcfromtimestamp(comment.created_utc).strftime('%Y.%m.%d %H:%M:%S')
+                comment_str += "[" + comment.author.name + "] " + str(comment.score) + " points " + str(comment_timestamp) + "\n"
+                comment_str += comment.body + "\n"
+              except Exception as e:
+                pass
+              comment_file.write(comment_str)
+              count += 1
+
+download_subreddit("CasualConversation", "/Users/pranav/Downloads/Reddit/")
