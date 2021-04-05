@@ -1,0 +1,6 @@
+verboselogs==1.7
+praw==7.2.0
+coloredlogs==15.0
+ffmpeg_python==0.2.0
+requests==2.25.1
+ffmpeg==1.4
