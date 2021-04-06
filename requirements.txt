@@ -7,3 +7,4 @@ tqdm==4.58.0
 verboselogs==1.7
 ffmpeg_python==0.2.0
 ffmpeg==1.4
+pyyaml==5.4.1
