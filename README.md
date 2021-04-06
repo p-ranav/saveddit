@@ -1,5 +1,5 @@
 <p align="center">
-  <img height="70" src="images/logo.png"/>
+  <img height="50" src="images/logo.png"/>
 </p>
 
 `saveddit` is a bulk media downloader for reddit.
@@ -18,14 +18,23 @@ foo@bar:~$ cd saveddit
 foo@bar:~$ python3 -m pip install -r requirements.txt
 ```
 
-### Register OAuth2 applications with Reddit and Imgur
+### Setting up authorization
 
 * [Register an application with Reddit](https://ssl.reddit.com/prefs/apps/)
   - Write down your client ID and secret from the app
   - More about Reddit API access [here](https://ssl.reddit.com/wiki/api)
   - Wiki page about Reddit OAuth2 applications [here](https://github.com/reddit-archive/reddit/wiki/OAuth2)
+
+<p align="left">
+  <img height="350" src="images/reddit_app.png"/>
+</p>
+
 * [Register an application with Imgur](https://api.imgur.com/oauth2/addclient)
   - Write down the Imgur client ID from the app
+
+<p align="left">
+  <img height="800" src="images/imgur_app.png"/>
+</p>
 
 These registrations will authorize you to use the Reddit and Imgur APIs to download publicly available information.
 
@@ -41,7 +50,7 @@ reddit_client_id: '<YOUR_REDDIT_CLIENT_ID>'
 reddit_client_secret: '<YOUR_REDDIT_CLIENT_SECRET>'
 ```
 
-### Run `saveddit` to download content from reddit
+### Run `saveddit` to start downloading content from reddit
 
 ```console
 foo@bar:~$ python3 -m saveddit.saveddit --help
