@@ -9,6 +9,7 @@
 ```console
 foo@bar:~$ git clone git@github.com:p-ranav/saveddit
 foo@bar:~$ cd saveddit
+foo@bar:~$ python3 -m pip install -r requirements.txt
 foo@bar:~$ python3 -m saveddit.saveddit --help
                                 .___  .___.__  __
    ___________ ___  __ ____   __| _/__| _/|__|/  |_
