@@ -37,7 +37,7 @@ optional arguments:
   -l post_limit         Limit the number of submissions downloaded in each category (default: None, i.e., all submissions)
   --skip-comments       When true, saveddit will not save comments to a comments.json file
   --skip-meta           When true, saveddit will not save meta to a submission.json file
-  --skip-videos         When true, saveddit will not download videos
+  --skip-videos         When true, saveddit will not download videos (e.g., gfycat, redgifs, youtube, v.redd.it links)
   -o output_path        Directory where saveddit will save downloaded content
 ```
 

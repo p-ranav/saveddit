@@ -62,7 +62,7 @@ if __name__ == "__main__":
     parser.add_argument('--skip-videos',
                         default=False,
                         action='store_true',
-                        help='When true, saveddit will not download videos')
+                        help='When true, saveddit will not download videos (e.g., gfycat, redgifs, youtube, v.redd.it links)')
     parser.add_argument('-o',
                         required=True,
                         type=str,
