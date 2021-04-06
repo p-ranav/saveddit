@@ -33,7 +33,7 @@ foo@bar:~$ python3 -m pip install -r requirements.txt
   - Write down the Imgur client ID from the app
 
 <p align="left">
-  <img height="800" src="images/imgur_app.png"/>
+  <img height="670" src="images/imgur_app.png"/>
 </p>
 
 These registrations will authorize you to use the Reddit and Imgur APIs to download publicly available information.
