@@ -39,3 +39,23 @@ optional arguments:
 ```console
 foo@bar:~$ python3 -m saveddit.saveddit -r pics -f hot new -l 100 -o /home/pranav/Downloads/Reddit/.
 ```
+
+## Supported Links:
+
+* Direct links to images or videos, e.g., `.png`, `.jpg`, `.mp4`, `.gif` etc.
+* Reddit galleries `reddit.com/gallery/...`
+* Reddit videos `v.redd.it/...`
+* Gfycat links `gfycat.com/...`
+* Redgif links `redgifs.com/...`
+* Imgur images `imgur.com/...`
+* Imgur albums `imgur.com/a/...` and `imgur.com/gallery/...`
+* Youtube links `youtube.com/...` and `yout.be/...`
+* These [sites](https://ytdl-org.github.io/youtube-dl/supportedsites.html) supported by `youtube-dl`
+* Self posts
+* For all other cases, `saveddit` will simply fetch the HTML of the URL
+
+## Contributing
+Contributions are welcome, have a look at the [CONTRIBUTING.md](CONTRIBUTING.md) document for more information.
+
+## License
+The project is available under the [MIT](https://opensource.org/licenses/MIT) license.
