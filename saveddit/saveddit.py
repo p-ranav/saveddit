@@ -25,9 +25,10 @@ def check_positive(value):
 
 
 def main(args):
+    print(args.o)
     for subreddit in args.r:
         downloader = SubredditDownloader(subreddit)
-        downloader.download("/Users/pranav/Downloads/Reddit",
+        downloader.download(args.o,
                             categories=args.f, post_limit=args.l, skip_comments=args.skip_comments)
 
 
@@ -54,5 +55,11 @@ if __name__ == "__main__":
                         default=False,
                         action='store_true',
                         help='When true, saveddit will not save comments to a comments.json file')
+    parser.add_argument('-o',
+                        required=True,
+                        type=str,
+                        metavar='output_path',
+                        help='Directory where saveddit will save downloaded content'
+                        )
     args = parser.parse_args()
     main(args)
