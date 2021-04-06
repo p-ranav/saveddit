@@ -4,6 +4,10 @@
 
 `saveddit` is a bulk media downloader for reddit.
 
+<p align="center">
+  <img src="images/demo.gif"/> 
+</p>
+
 ## Quick Start
 
 ```console

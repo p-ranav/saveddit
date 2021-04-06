@@ -178,10 +178,6 @@ class SubredditDownloader:
                         success = True
                         pass
 
-                    # Download HTML of link
-                    self.logger.spam(self.indent_1 + "Downloading HTML")
-                    self.download_html(submission.url, submission_dir)
-
                     # Download selftext and submission meta
                     self.logger.spam(self.indent_1 + "Saving submission.json")
                     self.download_submission_meta(submission, submission_dir)
@@ -536,28 +532,3 @@ class SubredditDownloader:
 
         with open(os.path.join(submission_dir, "submission.json"), 'w') as file:
             file.write(json.dumps(submission_dict, indent=2))
-
-    def download_html(self, url, output_path):
-        try:
-            response = urllib.request.urlopen(url)
-        except Exception as e:
-            return False
-
-        if response.getcode() == 200:
-
-            try:
-                html = response.read().decode('utf-8')
-            except Exception as e:
-                return False
-
-            files_dir = os.path.join(output_path, "html")
-            if not os.path.exists(files_dir):
-                os.makedirs(files_dir)
-
-            with open(os.path.join(files_dir, "webpage.html"), 'w') as file:
-                file.write(html)
-
-            return True
-
-        else:
-            return False
