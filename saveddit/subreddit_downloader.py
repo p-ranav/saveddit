@@ -547,7 +547,8 @@ class SubredditDownloader:
         submission_dict = {}
         if submission.author:
             submission_dict["author"] = submission.author.name
-        submission_dict["author"] = None
+        else:
+            submission_dict["author"] = None
         submission_dict["created_utc"] = int(submission.created_utc)
         submission_dict["distinguished"] = submission.distinguished
         submission_dict["downs"] = submission.downs
