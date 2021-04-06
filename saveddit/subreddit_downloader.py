@@ -436,22 +436,23 @@ class SubredditDownloader:
             image_id = url_leaf.split(".")[0]
         else:
             image_id = url_leaf
-        data = self.get_imgur_image_meta(image_id)
-        url = data["link"]
-        image_type = data["type"]
-        if "video/" in image_type:
-            self.logger.spam(
-                self.indent_2 + "This is an imgur link to a video file")
-            image_type = image_type.split("video/")[-1]
-        elif "image/" in image_type:
-            self.logger.spam(
-                self.indent_2 + "This is an imgur link to an image file")
-            image_type = image_type.split("image/")[-1]
-
-        filename = image_id + "." + image_type
-        save_path = os.path.join(output_dir, filename)
 
         try:
+            data = self.get_imgur_image_meta(image_id)
+            url = data["link"]
+            image_type = data["type"]
+            if "video/" in image_type:
+                self.logger.spam(
+                    self.indent_2 + "This is an imgur link to a video file")
+                image_type = image_type.split("video/")[-1]
+            elif "image/" in image_type:
+                self.logger.spam(
+                    self.indent_2 + "This is an imgur link to an image file")
+                image_type = image_type.split("image/")[-1]
+
+            filename = image_id + "." + image_type
+            save_path = os.path.join(output_dir, filename)
+
             urllib.request.urlretrieve(url, save_path)
         except Exception as e:
             self.logger.error(self.indent_2 + e)
