@@ -1,9 +1,10 @@
+ffmpeg_python==0.2.0
+verboselogs==1.7
 colorama==0.4.4
-youtube_dl==2021.4.1
 requests==2.25.1
 praw==7.2.0
-coloredlogs==15.0
 tqdm==4.58.0
-verboselogs==1.7
-ffmpeg_python==0.2.0
+coloredlogs==15.0
+youtube_dl==2021.4.1
+beautifulsoup4==4.9.3
 ffmpeg==1.4
