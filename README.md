@@ -36,8 +36,68 @@ optional arguments:
 
 ### Example Usage
 
+The following will:
+* Download from the `/r/pics` subreddit
+* Download submissions from the `/r/pics/hot`
+* Limit to `5` submissions
+* Save downloads to `/home/pranav/Downloads/Reddit/.`
+
 ```console
-foo@bar:~$ python3 -m saveddit.saveddit -r pics -f hot new -l 100 -o /home/pranav/Downloads/Reddit/.
+foo@bar:~$ python3 -m saveddit.saveddit -r pics -f hot -l 5 -o /home/pranav/Downloads/Reddit/.
+```
+
+You can download from multiple subreddits and use multiple filters:
+
+```console
+foo@bar:~$ python3 -m saveddit.saveddit -r funny AskReddit -f hot top new rising -l 5 -o /home/pranav/Downloads/Reddit/.
+```
+
+### Example Output
+
+```console
+foo@bar:~$ tree /Users/pranav/Downloads/Reddit
+/Users/pranav/Downloads/Reddit
+└── www.reddit.com
+    └── r
+        └── aww
+            └── new
+                ├── 0000_Squirrel_tickles
+                │   ├── comments.json
+                │   ├── files
+                │   │   ├── 891cwv3f6gr61.mp4
+                │   │   ├── 891cwv3f6gr61_audio.mp4
+                │   │   └── 891cwv3f6gr61_video.mp4
+                │   └── submission.json
+                ├── 0001_meet_my_friend_Commando
+                │   ├── comments.json
+                │   ├── files
+                │   │   └── ynutef1e6gr61.jpg
+                │   └── submission.json
+                ├── 0002_Got_a_surprise_when_I_got_home__�\237\220�
+                │   ├── comments.json
+                │   ├── files
+                │   │   └── eeo7zrih6gr61.jpg
+                │   └── submission.json
+                ├── 0003_Reddit__meet_Atlas__Newest_member_of_the_fam
+                │   ├── comments.json
+                │   ├── files
+                │   │   └── kl9aqogb6gr61.jpg
+                │   └── submission.json
+                ├── 0004_Cute_otter_with_cute_hats
+                │   ├── comments.json
+                │   ├── files
+                │   │   ├── p485p64hhcr61.jpg
+                │   │   ├── pso5vkihhcr61.jpg
+                │   │   ├── rrxbx7ehhcr61.jpg
+                │   │   └── uevyyqlhhcr61.jpg
+                │   └── submission.json
+                └── 0005_He_loves_this_strange_position_�\237\230\202
+                    ├── comments.json
+                    ├── files
+                    │   └── u7q25wx86gr61.jpg
+                    └── submission.json
+
+16 directories, 23 files
 ```
 
 ## Supported Links:
