@@ -399,16 +399,18 @@ class SubredditDownloader:
     def download_gfycat_or_redgif(self, submission, output_dir):
         self.logger.spam(
             self.indent_2 + "Looking for submission.preview.reddit_video_preview.fallback_url")
-        if "reddit_video_preview" in submission.preview:
-            if "fallback_url" in submission.preview["reddit_video_preview"]:
-                fallback_url = submission.preview["reddit_video_preview"]["fallback_url"]
-                file_format = fallback_url.split(".")[-1]
-                filename = submission.url.split("/")[-1] + "." + file_format
-                save_path = os.path.join(output_dir, filename)
-                try:
-                    urllib.request.urlretrieve(fallback_url, save_path)
-                except Exception as e:
-                    self.logger.error(e)
+        preview = getattr(submission, "preview")
+        if preview:
+            if "reddit_video_preview" in preview:
+                if "fallback_url" in preview["reddit_video_preview"]:
+                    fallback_url = preview["reddit_video_preview"]["fallback_url"]
+                    file_format = fallback_url.split(".")[-1]
+                    filename = submission.url.split("/")[-1] + "." + file_format
+                    save_path = os.path.join(output_dir, filename)
+                    try:
+                        urllib.request.urlretrieve(fallback_url, save_path)
+                    except Exception as e:
+                        self.logger.error(e)
 
     def is_imgur_album(self, url):
         return "imgur.com/a/" in url or "imgur.com/gallery/" in url
