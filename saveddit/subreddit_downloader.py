@@ -1,3 +1,4 @@
+from bs4 import BeautifulSoup
 import coloredlogs
 from colorama import Fore
 import contextlib
@@ -200,7 +201,6 @@ class SubredditDownloader:
                             success = True
                     else:
                         success = True
-                        pass
 
                     # Download submission meta
                     if not skip_meta:
@@ -371,7 +371,7 @@ class SubredditDownloader:
                     submission.url + "/DASH_audio.mp4", audio_save_path)
                 audio_downloaded = True
             except Exception as e:
-                pass
+                self.logger.error(self.indent_2 + str(e))
 
             if audio_downloaded == True:
                 # Merge mp4 files
@@ -396,9 +396,27 @@ class SubredditDownloader:
     def is_redgifs_link(self, url):
         return "redgifs.com/" in url
 
+    def get_gfycat_embedded_video_url(self, url):
+        try:
+            response  = requests.get(url)
+            data = response.text
+            soup = BeautifulSoup(data, 'lxml')
+
+            # Cycle through all links
+            for link in soup.find_all():
+                link_src = link.get('src')
+                src_url = str(link_src)
+                if ".mp4" in src_url:
+                    # Looking for giant.gfycat.com
+                    if "giant." in src_url:
+                        return src_url
+        except Exception as e:
+            return ""
+
     def download_gfycat_or_redgif(self, submission, output_dir):
         self.logger.spam(
             self.indent_2 + "Looking for submission.preview.reddit_video_preview.fallback_url")
+        preview = None
         try:
             preview = getattr(submission, "preview")
             if preview:
@@ -410,17 +428,39 @@ class SubredditDownloader:
                         save_path = os.path.join(output_dir, filename)
                         try:
                             urllib.request.urlretrieve(fallback_url, save_path)
+                            return
                         except Exception as e:
-                            self.logger.error(e)
+                            self.logger.error(self.indent_2 + str(e))
         except Exception as e:
-            pass
+            self.logger.error(self.indent_2 + str(e))
 
         try:
+            self.logger.spam(
+                self.indent_2 + "Looking for submission.media_embed")
             media_embed = getattr(submission, "media_embed")
             if media_embed:
                 content = media_embed["content"]
+                self.logger.spam(
+                    self.indent_2 + "Found submission.media_embed")
+                if "iframe" in content:
+                    if "gfycat.com" in submission.url:
+                        self.logger.spam(
+                            self.indent_2 + "This is an embedded video in gfycat.com")
+                        # This is likely an embedded video in gfycat
+                        video_url = self.get_gfycat_embedded_video_url(submission.url)
+                        if len(video_url):
+                            filename = video_url.split("/")[-1]
+                            save_path = os.path.join(output_dir, filename)
+
+                            self.logger.spam(
+                                self.indent_2 + "Embedded video URL: " + video_url)
+                            try:
+                                urllib.request.urlretrieve(video_url, save_path)
+                                return
+                            except Exception as e:
+                                self.logger.error(self.indent_2 + str(e))
         except Exception as e:
-            pass
+            self.logger.error(self.indent_2 + str(e))
 
     def is_imgur_album(self, url):
         return "imgur.com/a/" in url or "imgur.com/gallery/" in url
@@ -536,7 +576,7 @@ class SubredditDownloader:
                     comment_dict["ups"] = comment.ups
                     comment_dict["upvote_ratio"] = comment.upvote_ratio
                 except Exception as e:
-                    pass
+                    self.logger.error(self.indent_2 + str(e))
                 comments_list.append(comment_dict)
             file.write(json.dumps(comments_list, indent=2))
 
