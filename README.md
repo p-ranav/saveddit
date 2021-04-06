@@ -26,7 +26,7 @@ foo@bar:~$ python3 -m saveddit.saveddit --help
  version : v1.0.0
  URL     : https://github.com/p-ranav/saveddit
 
-usage: saveddit [-h] -r subreddits [subreddits ...] [-f categories [categories ...]] [-l post_limit] [--skip-comments] -o output_path
+usage: saveddit [-h] -r subreddits [subreddits ...] [-f categories [categories ...]] [-l post_limit] [--skip-comments] [--skip-meta] [--skip-videos] -o output_path
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -36,6 +36,8 @@ optional arguments:
                         Categories of posts to download (default: ['hot', 'new', 'rising', 'controversial', 'top', 'gilded'])
   -l post_limit         Limit the number of submissions downloaded in each category (default: None, i.e., all submissions)
   --skip-comments       When true, saveddit will not save comments to a comments.json file
+  --skip-meta           When true, saveddit will not save meta to a submission.json file
+  --skip-videos         When true, saveddit will not download videos
   -o output_path        Directory where saveddit will save downloaded content
 ```
 

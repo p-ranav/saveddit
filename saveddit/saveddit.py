@@ -29,7 +29,7 @@ def main(args):
     for subreddit in args.r:
         downloader = SubredditDownloader(subreddit)
         downloader.download(args.o,
-                            categories=args.f, post_limit=args.l, skip_comments=args.skip_comments)
+                            categories=args.f, post_limit=args.l, skip_videos=args.skip_videos, skip_meta=args.skip_meta, skip_comments=args.skip_comments)
 
 
 if __name__ == "__main__":
@@ -55,6 +55,14 @@ if __name__ == "__main__":
                         default=False,
                         action='store_true',
                         help='When true, saveddit will not save comments to a comments.json file')
+    parser.add_argument('--skip-meta',
+                        default=False,
+                        action='store_true',
+                        help='When true, saveddit will not save meta to a submission.json file')
+    parser.add_argument('--skip-videos',
+                        default=False,
+                        action='store_true',
+                        help='When true, saveddit will not download videos')
     parser.add_argument('-o',
                         required=True,
                         type=str,
