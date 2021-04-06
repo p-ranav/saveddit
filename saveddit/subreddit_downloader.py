@@ -399,18 +399,28 @@ class SubredditDownloader:
     def download_gfycat_or_redgif(self, submission, output_dir):
         self.logger.spam(
             self.indent_2 + "Looking for submission.preview.reddit_video_preview.fallback_url")
-        preview = getattr(submission, "preview")
-        if preview:
-            if "reddit_video_preview" in preview:
-                if "fallback_url" in preview["reddit_video_preview"]:
-                    fallback_url = preview["reddit_video_preview"]["fallback_url"]
-                    file_format = fallback_url.split(".")[-1]
-                    filename = submission.url.split("/")[-1] + "." + file_format
-                    save_path = os.path.join(output_dir, filename)
-                    try:
-                        urllib.request.urlretrieve(fallback_url, save_path)
-                    except Exception as e:
-                        self.logger.error(e)
+        try:
+            preview = getattr(submission, "preview")
+            if preview:
+                if "reddit_video_preview" in preview:
+                    if "fallback_url" in preview["reddit_video_preview"]:
+                        fallback_url = preview["reddit_video_preview"]["fallback_url"]
+                        file_format = fallback_url.split(".")[-1]
+                        filename = submission.url.split("/")[-1] + "." + file_format
+                        save_path = os.path.join(output_dir, filename)
+                        try:
+                            urllib.request.urlretrieve(fallback_url, save_path)
+                        except Exception as e:
+                            self.logger.error(e)
+        except Exception as e:
+            pass
+
+        try:
+            media_embed = getattr(submission, "media_embed")
+            if media_embed:
+                content = media_embed["content"]
+        except Exception as e:
+            pass
 
     def is_imgur_album(self, url):
         return "imgur.com/a/" in url or "imgur.com/gallery/" in url
