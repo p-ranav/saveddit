@@ -6,6 +6,7 @@ import logging
 import verboselogs
 from datetime import datetime
 import os
+from io import StringIO
 import json
 import ffmpeg
 import praw
@@ -252,8 +253,9 @@ class SubredditDownloader:
     def is_supported_by_youtubedl(self, url):
         try:
             # Since youtube-dl's quiet mode is amything BUT quiet
-            # using contextlib to redirect stdout to /dev/null
-            with contextlib.redirect_stderr(None):
+            # using contextlib to redirect stdout to a local StringIO variable
+            local_stderr = StringIO()
+            with contextlib.redirect_stderr(local_stderr):
                 if "flickr.com/photos" in url:
                     return False
 
@@ -276,13 +278,15 @@ class SubredditDownloader:
                     if e.suitable(url) and e.IE_NAME != 'generic':
                         return True
                         self.logger.spam(self.indent_2 + "This link could potentially be downloaded with youtube-dl")
+                self.logger.spam(self.indent_2 + "No media found in '" + url + "' that could be downloaded with youtube-dl")
                 return False
         except Exception as e:
             return False
 
     def download_youtube_video(self, url, output_path):
         try:
-            with contextlib.redirect_stderr(None):
+            local_stderr = StringIO()
+            with contextlib.redirect_stderr(local_stderr):
                 download_options = {
                     'format': "299+bestaudio/298+bestaudio/137+bestaudio/136+bestaudio/best",
                     'quiet': True,
@@ -296,8 +300,12 @@ class SubredditDownloader:
                                 url + " with youtube-dl")
                 with youtube_dl.YoutubeDL(download_options) as ydl:
                     ydl.download([url])
-                    self.logger.spam(self.indent_2 + "Finished downloading video from " +
-                                url)
+                    errors = local_stderr.getvalue()
+                    if not len(errors):
+                        self.logger.spam(self.indent_2 + "Finished downloading video from " +
+                                    url)
+                    else:
+                        self.logger.error(self.indent_2 + errors.strip())
         except Exception as e:
             self.logger.error(self.indent_2 + "Failed to download with youtube-dl: " + str(e))
 
@@ -387,7 +395,7 @@ class SubredditDownloader:
                     submission.url + "/DASH_audio.mp4", audio_save_path)
                 audio_downloaded = True
             except Exception as e:
-                self.logger.spam(self.indent_2 + "Received error: " + str(e))
+                pass
 
             if audio_downloaded == True:
                 # Merge mp4 files
