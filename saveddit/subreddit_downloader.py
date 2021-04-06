@@ -99,7 +99,7 @@ class SubredditDownloader:
                     success = False
 
                     should_create_files_dir = True
-                    if skip_comments and skip_meta and skip_videos:
+                    if skip_comments and skip_meta:
                         should_create_files_dir = False
 
                     def create_files_dir(submission_dir):
