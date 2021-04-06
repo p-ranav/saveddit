@@ -299,7 +299,7 @@ class SubredditDownloader:
                     try:
                         urllib.request.urlretrieve(item_url, save_path)
                     except Exception as e:
-                        self.logger.error(self.indent_2 + e)
+                        self.logger.error(self.indent_2 + str(e))
 
     def is_reddit_video(self, url):
         return "v.redd.it" in url
@@ -424,7 +424,7 @@ class SubredditDownloader:
                         os.makedirs(output_dir)
                     urllib.request.urlretrieve(url, save_path)
                 except Exception as e:
-                    self.logger.error(self.indent_2 + e)
+                    self.logger.error(self.indent_2 + str(e))
 
     def is_imgur_image(self, url):
         return "imgur.com" in url
@@ -455,7 +455,7 @@ class SubredditDownloader:
 
             urllib.request.urlretrieve(url, save_path)
         except Exception as e:
-            self.logger.error(self.indent_2 + e)
+            self.logger.error(self.indent_2 + str(e))
 
     def download_comments(self, submission, output_dir, comment_limit):
         # Save comments - Breath first unwrap of comment forest
