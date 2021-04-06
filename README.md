@@ -10,10 +10,36 @@
 
 ## Quick Start
 
+### Clone and install dependencies
+
 ```console
 foo@bar:~$ git clone git@github.com:p-ranav/saveddit
 foo@bar:~$ cd saveddit
 foo@bar:~$ python3 -m pip install -r requirements.txt
+```
+
+### Register applications with Reddit and Imgur
+
+* [Register an application with Reddit](https://ssl.reddit.com/prefs/apps/)
+  - Write down your client ID and secret from the app
+* [Register an application with Imgur](https://api.imgur.com/oauth2/addclient)
+  - Write down the Imgur client ID from the app
+
+These registrations will authorize you to use the Reddit and Imgur APIs to download publicly available information.
+
+### User configuration
+
+Create a `user_config.yaml` file in the root of the repository
+
+```yaml
+imgur_client_id: '<YOUR_IMGUR_CLIENT_ID>'
+reddit_client_id: '<YOUR_REDDIT_CLIENT_ID>'
+reddit_client_secret: '<YOUR_REDDIT_CLIENT_SECRET>'
+```
+
+### Run `saveddit` to download content from reddit
+
+```console
 foo@bar:~$ python3 -m saveddit.saveddit --help
                                 .___  .___.__  __
    ___________ ___  __ ____   __| _/__| _/|__|/  |_
