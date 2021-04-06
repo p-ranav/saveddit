@@ -26,14 +26,14 @@ foo@bar:~$ python3 -m pip install -r requirements.txt
   - Wiki page about Reddit OAuth2 applications [here](https://github.com/reddit-archive/reddit/wiki/OAuth2)
 
 <p align="left">
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<img height="350" src="images/reddit_app.png"/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<img height="300" src="images/reddit_app.png"/>
 </p>
 
 * [Register an application with Imgur](https://api.imgur.com/oauth2/addclient)
   - Write down the Imgur client ID from the app
 
 <p align="left">
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<img height="670" src="images/imgur_app.png"/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<img height="600" src="images/imgur_app.png"/>
 </p>
 
 These registrations will authorize you to use the Reddit and Imgur APIs to download publicly available information.
