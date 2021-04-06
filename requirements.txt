@@ -8,3 +8,4 @@ coloredlogs==15.0
 youtube_dl==2021.4.1
 beautifulsoup4==4.9.3
 ffmpeg==1.4
+pyyaml==5.4.1

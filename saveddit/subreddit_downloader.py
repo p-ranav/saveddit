@@ -15,12 +15,16 @@ import requests
 from tqdm import tqdm
 import urllib.request
 import youtube_dl
-
+from saveddit.configuration import ConfigurationLoader
 
 class SubredditDownloader:
-    REDDIT_CLIENT_ID = "aCjKJeNwZw_Efg"
-    REDDIT_CLIENT_SECRET = "1Hul2-xgH_11r6limxcdtnPFQ4V5AQ"
-    IMGUR_CLIENT_ID = "33982ca3205a4a2"
+    config = ConfigurationLoader.load(os.path.abspath(
+            os.path.join(os.path.dirname(__file__), "../", "user_config.yaml")
+        ))
+
+    REDDIT_CLIENT_ID = config['reddit_client_id']
+    REDDIT_CLIENT_SECRET = config['reddit_client_secret']
+    IMGUR_CLIENT_ID = config['imgur_client_id']
     DEFAULT_CATEGORIES = ["hot", "new", "rising",
                           "controversial", "top", "gilded"]
     DEFAULT_POST_LIMIT = None
