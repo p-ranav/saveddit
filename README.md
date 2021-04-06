@@ -18,10 +18,12 @@ foo@bar:~$ cd saveddit
 foo@bar:~$ python3 -m pip install -r requirements.txt
 ```
 
-### Register applications with Reddit and Imgur
+### Register OAuth2 applications with Reddit and Imgur
 
 * [Register an application with Reddit](https://ssl.reddit.com/prefs/apps/)
   - Write down your client ID and secret from the app
+  - More about Reddit API access [here](https://ssl.reddit.com/wiki/api)
+  - Wiki page about Reddit OAuth2 applications [here](https://github.com/reddit-archive/reddit/wiki/OAuth2)
 * [Register an application with Imgur](https://api.imgur.com/oauth2/addclient)
   - Write down the Imgur client ID from the app
 
@@ -29,7 +31,9 @@ These registrations will authorize you to use the Reddit and Imgur APIs to downl
 
 ### User configuration
 
-Create a `user_config.yaml` file in the root of the repository
+* Create a `user_config.yaml` file in the root of the repository
+* Paste the following into the configuration file
+* Update the client IDs and secrets from the previous step
 
 ```yaml
 imgur_client_id: '<YOUR_IMGUR_CLIENT_ID>'
