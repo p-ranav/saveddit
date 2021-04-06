@@ -250,50 +250,56 @@ class SubredditDownloader:
         return "youtube.com" in url or "youtu.be" in url
 
     def is_supported_by_youtubedl(self, url):
-        # Since youtube-dl's quiet mode is amything BUT quiet
-        # using contextlib to redirect stdout to /dev/null
-        with contextlib.redirect_stderr(None):
-            if "flickr.com/photos" in url:
-                return False
+        try:
+            # Since youtube-dl's quiet mode is amything BUT quiet
+            # using contextlib to redirect stdout to /dev/null
+            with contextlib.redirect_stderr(None):
+                if "flickr.com/photos" in url:
+                    return False
 
-            # Try to extract info from URL
-            try:
-                download_options = {
-                    'quiet': True,
-                    'warnings': True,
-                    'ignoreerrors': True,
-                }
-                ydl = youtube_dl.YoutubeDL(download_options)
-                r = ydl.extract_info(url, download=False)
-            except Exception as e:
-                # No media found through youtube-dl
-                self.logger.spam(self.indent_2 + "No media found in '" + url + "' that could be downloaded with youtube-dl")
-                return False
+                # Try to extract info from URL
+                try:
+                    download_options = {
+                        'quiet': True,
+                        'warnings': True,
+                        'ignoreerrors': True,
+                    }
+                    ydl = youtube_dl.YoutubeDL(download_options)
+                    r = ydl.extract_info(url, download=False)
+                except Exception as e:
+                    # No media found through youtube-dl
+                    self.logger.spam(self.indent_2 + "No media found in '" + url + "' that could be downloaded with youtube-dl")
+                    return False
 
-            extractors = youtube_dl.extractor.gen_extractors()
-            for e in extractors:
-                if e.suitable(url) and e.IE_NAME != 'generic':
-                    return True
-                    self.logger.spam(self.indent_2 + "This link could potentially be downloaded with youtube-dl")
+                extractors = youtube_dl.extractor.gen_extractors()
+                for e in extractors:
+                    if e.suitable(url) and e.IE_NAME != 'generic':
+                        return True
+                        self.logger.spam(self.indent_2 + "This link could potentially be downloaded with youtube-dl")
+                return False
+        except Exception as e:
             return False
 
     def download_youtube_video(self, url, output_path):
-        with contextlib.redirect_stderr(None):
-            download_options = {
-                'format': "299+bestaudio/298+bestaudio/137+bestaudio/136+bestaudio/best",
-                'quiet': True,
-                'warnings': True,
-                'ignoreerrors': True,
-                'nooverwrites': True,
-                'continuedl': True,
-                'outtmpl': output_path + '/%(id)s.%(ext)s'
-            }
-            self.logger.spam(self.indent_2 + "Downloading " +
-                             url + " with youtube-dl")
-            with youtube_dl.YoutubeDL(download_options) as ydl:
-                ydl.download([url])
-                self.logger.spam(self.indent_2 + "Finished downloading video from " +
-                             url)
+        try:
+            with contextlib.redirect_stderr(None):
+                download_options = {
+                    'format': "299+bestaudio/298+bestaudio/137+bestaudio/136+bestaudio/best",
+                    'quiet': True,
+                    'warnings': True,
+                    'ignoreerrors': True,
+                    'nooverwrites': True,
+                    'continuedl': True,
+                    'outtmpl': output_path + '/%(id)s.%(ext)s'
+                }
+                self.logger.spam(self.indent_2 + "Downloading " +
+                                url + " with youtube-dl")
+                with youtube_dl.YoutubeDL(download_options) as ydl:
+                    ydl.download([url])
+                    self.logger.spam(self.indent_2 + "Finished downloading video from " +
+                                url)
+        except Exception as e:
+            self.logger.error(self.indent_2 + "Failed to download with youtube-dl: " + str(e))
 
     def is_reddit_gallery(self, url):
         return "reddit.com/gallery" in url
