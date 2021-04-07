@@ -1,5 +1,6 @@
 import argparse
 from saveddit.subreddit_downloader import SubredditDownloader
+import sys
 
 
 def asciiart():
@@ -23,17 +24,9 @@ def check_positive(value):
             "%s is an invalid positive int value" % value)
     return ivalue
 
-
-def main(args):
-    print(args.o)
-    for subreddit in args.r:
-        downloader = SubredditDownloader(subreddit)
-        downloader.download(args.o,
-                            categories=args.f, post_limit=args.l, skip_videos=args.skip_videos, skip_meta=args.skip_meta, skip_comments=args.skip_comments)
-
-
-if __name__ == "__main__":
+def main():
     print(asciiart())
+    argv = sys.argv[1:]
 
     parser = argparse.ArgumentParser(prog="saveddit")
     parser.add_argument('-r',
@@ -69,5 +62,11 @@ if __name__ == "__main__":
                         metavar='output_path',
                         help='Directory where saveddit will save downloaded content'
                         )
-    args = parser.parse_args()
-    main(args)
+    args = parser.parse_args(argv)
+    for subreddit in args.r:
+        downloader = SubredditDownloader(subreddit)
+        downloader.download(args.o,
+                            categories=args.f, post_limit=args.l, skip_videos=args.skip_videos, skip_meta=args.skip_meta, skip_comments=args.skip_comments)
+
+if __name__ == "__main__":
+    main()

@@ -37,7 +37,7 @@ class ConfigurationLoader:
         # Explicitly converting path to POSIX-like path (to avoid '\\' hell)
         print(
             "{notice}Retrieving configuration from {path} file{white}".format(
-                path=os.path.basename(path),
+                path=path,
                 notice=ConfigurationLoader.PURPLE,
                 white=ConfigurationLoader.WHITE,
             )
