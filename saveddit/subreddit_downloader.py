@@ -85,8 +85,7 @@ class SubredditDownloader:
                 if has_url:
                     title = submission.title
                     self.logger.verbose(prefix_str + '"' + title + '"')
-                    title = title.translate(
-                        {ord(c): " " for c in "!@#$%^&*()[]{};:,./<>?\|`~-=_+"})
+                    title = re.sub(r'\W+', '_', title)
 
                     # Truncate title
                     if len(title) > 127:
