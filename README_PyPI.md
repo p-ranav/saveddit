@@ -1,12 +1,6 @@
-<p align="center">
-  <img height="50" src="images/logo.png"/>
-</p>
+![](https://raw.githubusercontent.com/p-ranav/saveddit/master/images/logo.png)
 
 `saveddit` is a bulk media downloader for reddit.
-
-<p align="center">
-  <img src="images/demo.gif"/> 
-</p>
 
 ## Quick Start
 
@@ -21,16 +15,12 @@ foo@bar:~$ pip3 install saveddit
   - More about Reddit API access [here](https://ssl.reddit.com/wiki/api)
   - Wiki page about Reddit OAuth2 applications [here](https://github.com/reddit-archive/reddit/wiki/OAuth2)
 
-<p align="left">
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<img height="300" src="images/reddit_app.png"/>
-</p>
+![](https://raw.githubusercontent.com/p-ranav/saveddit/master/images/reddit_app.png)
 
 * [Register an application with Imgur](https://api.imgur.com/oauth2/addclient)
   - Write down the Imgur client ID from the app
 
-<p align="left">
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<img height="600" src="images/imgur_app.png"/>
-</p>
+![](https://raw.githubusercontent.com/p-ranav/saveddit/master/images/imgur_app.png)
 
 These registrations will authorize you to use the Reddit and Imgur APIs to download publicly available information.
 

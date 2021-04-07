@@ -19,9 +19,12 @@ import youtube_dl
 from saveddit.configuration import ConfigurationLoader
 
 class SubredditDownloader:
-    config = ConfigurationLoader.load(os.path.abspath(
-            os.path.join(os.path.dirname(__file__), "../", "user_config.yaml")
-        ))
+    app_config_dir = os.path.expanduser("~/.saveddit")
+    if not os.path.exists(app_config_dir):
+        os.makedirs(app_config_dir)
+
+    config_file_location = os.path.expanduser("~/.saveddit/user_config.yaml")
+    config = ConfigurationLoader.load(config_file_location)
 
     REDDIT_CLIENT_ID = config['reddit_client_id']
     REDDIT_CLIENT_SECRET = config['reddit_client_secret']
