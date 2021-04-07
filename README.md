@@ -2,6 +2,15 @@
   <img height="50" src="images/logo.png"/>
 </p>
 
+<p align="center">
+  <a href="https://badge.fury.io/py/saveddit">
+    <img src="https://badge.fury.io/py/saveddit.svg" alt="PyPI version" height="18">
+  </a>
+  <a href="https://github.com/p-ranav/indicators/blob/master/LICENSE">
+    <img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="license"/>
+  </a>
+</p>
+
 `saveddit` is a bulk media downloader for reddit.
 
 <p align="center">
