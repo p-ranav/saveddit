@@ -41,6 +41,7 @@ class UserDownloader():
         exit()
 
     IMGUR_CLIENT_ID = config['imgur_client_id']
+    DEFAULT_CATEGORIES = ["comments", "submitted", "saved"]
     DEFAULT_POST_LIMIT = None
 
     def __init__(self, username):
@@ -69,31 +70,100 @@ class UserDownloader():
         self.username = username
         self.user = reddit.redditor(name=username)
 
-    def download(self, output_path, post_limit=DEFAULT_POST_LIMIT, skip_videos=False, skip_meta=False, skip_comments=False, comment_limit=0):
+    def download(self, output_path, categories=DEFAULT_CATEGORIES, post_limit=DEFAULT_POST_LIMIT, skip_videos=False, skip_meta=False, skip_comments=False, comment_limit=0):
 
         self.logger.notice("Downloading from /user/" + self.username)
 
         root_dir = os.path.join(os.path.join(os.path.join(
             output_path, "www.reddit.com"), "user"), self.username)
 
-        # Try and download submissions
-        try:
-            self.download_submissions(root_dir, post_limit, skip_videos, skip_meta, skip_comments, comment_limit)
-        except Exception as e:
-            self.logger.error("Unable to download submissions for user `" + self.username + "` - " + str(e))
+        if "comments" in categories and not skip_comments:
+            # Try and download submissions
+            try:
+                self.download_comments(root_dir)
+            except Exception as e:
+                self.logger.error("Unable to download comments for user `" + self.username + "` - " + str(e))
+        else:
+            self.logger.spam("Skipping comments for user " + self.username)
 
-        # Try and download saved posts
-        try:
-            self.download_saved_posts(root_dir, post_limit, skip_videos, skip_meta, skip_comments, comment_limit)
-        except Exception as e:
-            self.logger.error("Unable to download saved posts/comments for user `" + self.username + "` - " + str(e))
+        if "submitted" in categories:
+            # Try and download submissions
+            try:
+                self.download_submissions(root_dir, post_limit, skip_videos, skip_meta, skip_comments, comment_limit)
+            except Exception as e:
+                self.logger.error("Unable to download submissions for user `" + self.username + "` - " + str(e))
+        else:
+            self.logger.spam("Skipping submissions for user " + self.username)
+
+        if "saved" in categories:
+            # Try and download saved posts
+            try:
+                self.download_saved_posts(root_dir, post_limit, skip_videos, skip_meta, skip_comments, comment_limit)
+            except Exception as e:
+                self.logger.error("Unable to download saved for user `" + self.username + "` - " + str(e))
+        else:
+            self.logger.spam("Skipping saved for user " + self.username)
+
+    def download_comments(self, output_path):
+        comments_dir = os.path.join(output_path, "comments")
+        if not os.path.exists(comments_dir):
+            os.makedirs(comments_dir)
+
+        self.logger.notice("Downloading from /user/" + self.username + "/comments/")
+
+        categories = ["hot", "new", "top", "controversial"]
+
+        for c in categories:
+            self.logger.verbose("Downloading comments sorted by " + c)
+            category_function = getattr(self.user.comments, c)
+
+            category_dir = os.path.join(comments_dir, c)
+
+            if category_function:
+                if not os.path.exists(category_dir):
+                    os.makedirs(category_dir)
+                for i, comment in enumerate(category_function(limit=None)):
+                    prefix_str = '#' + str(i) + ' '
+                    self.indent_1 = ' ' * len(prefix_str) + "* "
+                    self.indent_2 = ' ' * len(self.indent_1) + "- "
+
+                    with open(os.path.join(category_dir, str(i).zfill(4) + "_" + str(comment.id) + '.json'), 'w') as file:
+                        comment_dict = {}
+                        try:
+                            if comment.author:
+                                comment_dict["author"] = comment.author.name
+                            else:
+                                comment_dict["author"] = None
+                            comment_dict["body"] = comment.body
+                            comment_dict["created_utc"] = int(comment.created_utc)
+                            comment_dict["distinguished"] = comment.distinguished
+                            comment_dict["downs"] = comment.downs
+                            comment_dict["edited"] = comment.edited
+                            comment_dict["id"] = comment.id
+                            comment_dict["is_submitter"] = comment.is_submitter
+                            comment_dict["link_id"] = comment.link_id
+                            comment_dict["parent_id"] = comment.parent_id
+                            comment_dict["permalink"] = comment.permalink
+                            comment_dict["score"] = comment.score
+                            comment_dict["stickied"] = comment.stickied
+                            comment_dict["subreddit_name_prefixed"] = comment.subreddit_name_prefixed
+                            comment_dict["subreddit_id"] = comment.subreddit_id
+                            comment_dict["total_awards_received"] = comment.total_awards_received
+                            comment_dict["ups"] = comment.ups
+                            file.write(json.dumps(comment_dict, indent=2))
+                        except Exception as e:
+                            self.print_formatted_error(e)
+
+                    # TODO:
+                    # Create directory for each comment
+                    # Save a comments.json in there for each comment?
 
     def download_submissions(self, output_path, post_limit, skip_videos, skip_meta, skip_comments, comment_limit):
         submissions_dir = os.path.join(output_path, "submissions")
         if not os.path.exists(submissions_dir):
             os.makedirs(submissions_dir)
 
-        self.logger.notice("Downloading from /user/" + self.username + "/submissions/")
+        self.logger.notice("Downloading from /user/" + self.username + "/submitted/")
 
         categories = [ "hot", "new", "top", "controversial"]
 
