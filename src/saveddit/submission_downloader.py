@@ -379,17 +379,33 @@ class SubmissionDownloader:
         try:
             response  = requests.get(url)
             data = response.text
-            soup = BeautifulSoup(data, 'lxml')
+            soup = BeautifulSoup(data, features="html.parser")
 
             # Cycle through all links
+            giant_url_found = False
+            giant_url = ""
+            thumbs_url_found = False
+            thumbs_url = ""
             for link in soup.find_all():
                 link_src = link.get('src')
                 src_url = str(link_src)
                 if ".mp4" in src_url:
                     # Looking for giant.gfycat.com
                     if "giant." in src_url:
-                        return src_url
+                        giant_url_found = True
+                        giant_url = src_url
+                    elif "thumbs." in src_url:
+                        thumbs_url_found = True
+                        thumbs_url = src_url
         except Exception as e:
+            self.print_formatted_error(e)
+            return ""
+
+        if giant_url_found:
+            return giant_url
+        elif thumbs_url_found:
+            return thumbs_url
+        else:
             return ""
 
     def guess_extension(self, url):
@@ -441,9 +457,13 @@ class SubmissionDownloader:
             if preview:
                 if "reddit_video_preview" in preview:
                     if "fallback_url" in preview["reddit_video_preview"]:
+                        self.logger.spam(self.indent_2 + "Found submission.preview.reddit_video_preview.fallback_url")
                         fallback_url = preview["reddit_video_preview"]["fallback_url"]
-                        file_format = fallback_url.split(".")[-1]
-                        filename = submission.url.split("/")[-1] + "." + file_format
+                        if "." in fallback_url.split("/")[-1]:
+                            file_format = fallback_url.split(".")[-1]
+                            filename = submission.url.split("/")[-1] + "." + file_format
+                        else:
+                            filename = submission.url.split("/")[-1] + ".mp4"
                         save_path = os.path.join(output_dir, filename)
                         try:
                             urllib.request.urlretrieve(fallback_url, save_path)
@@ -452,6 +472,7 @@ class SubmissionDownloader:
                             self.print_formatted_error(e)
                 elif "images" in preview:
                     if "source" in preview["images"][0]:
+                        self.logger.spam(self.indent_2 + "Found submission.preview.images instead")
                         source_url = preview["images"][0]["source"]["url"]
                         try:
                             extension = self.guess_extension(source_url)
@@ -459,7 +480,6 @@ class SubmissionDownloader:
                             save_path = os.path.join(output_dir, filename)
                             try:
                                 urllib.request.urlretrieve(source_url, save_path)
-                                return
                             except Exception as e:
                                 self.print_formatted_error(e)
                         except Exception as e:
@@ -482,15 +502,16 @@ class SubmissionDownloader:
                             self.indent_2 + "This is an embedded video in gfycat.com")
                         # This is likely an embedded video in gfycat
                         video_url = self.get_gfycat_embedded_video_url(submission.url)
-                        if len(video_url):
+                        if video_url:
                             filename = video_url.split("/")[-1]
                             save_path = os.path.join(output_dir, filename)
 
                             self.logger.spam(
                                 self.indent_2 + "Embedded video URL: " + video_url)
                             try:
-                                urllib.request.urlretrieve(video_url, save_path)
-                                return
+                                r = requests.get(video_url)
+                                with open(save_path, 'wb') as outfile:
+                                    outfile.write(r.content)
                             except Exception as e:
                                 self.print_formatted_error(e)
         except Exception as e:
