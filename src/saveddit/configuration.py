@@ -28,6 +28,7 @@ class ConfigurationLoader:
             _STD_CONFIG = {
                 "reddit_client_id": "",
                 "reddit_client_secret": "",
+                "reddit_username": "",
                 "imgur_client_id": "",
             }
             with open(_path, "x") as _f:

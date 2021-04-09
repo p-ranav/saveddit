@@ -1,11 +1,11 @@
-praw==7.2.0
-verboselogs==1.7
-requests==2.25.1
 colorama==0.4.4
 coloredlogs==15.0
-youtube_dl==2021.4.1
-tqdm==4.58.0
+verboselogs==1.7
+praw==7.2.0
+tqdm==4.60.0
 ffmpeg_python==0.2.0
+youtube_dl==2021.4.7
+requests==2.25.1
 beautifulsoup4==4.9.3
 ffmpeg==1.4
 PyYAML==5.4.1
