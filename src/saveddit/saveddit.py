@@ -13,7 +13,7 @@ def asciiart():
       \/      \/          \/     \/    \/
 
  Downloader for Reddit
- version : v2.0.3
+ version : v2.0.4
  URL     : https://github.com/p-ranav/saveddit
 '''
 
@@ -224,6 +224,7 @@ def main():
                                 categories=args.f, post_limit=args.l, skip_videos=args.skip_videos, skip_meta=args.skip_meta, skip_comments=args.skip_comments)
     elif args.subparser_name == "user":
         downloader = UserDownloader()
+        downloader.download_user_meta(args)
         if args.user_subparser_name == "comments":
             downloader.download_comments(args)
         elif args.user_subparser_name == "submitted":
@@ -237,7 +238,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-# saveddit user p_ranav saved --skip-comments --skip-videos -o ~/Desktop
-# saveddit user p_ranav submitted --sort hot new controversial top --skip-videos -o ~/Desktop
-# saveddit user p_ranav comments --sort hot new controversial top -o ~/Desktop

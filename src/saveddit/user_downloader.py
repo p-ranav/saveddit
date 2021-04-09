@@ -82,6 +82,38 @@ class UserDownloader():
             password=UserDownloader.REDDIT_PASSWORD
         )
 
+    def download_user_meta(self, args):
+        output_path = args.o
+
+        for username in args.users:
+            user = self.reddit.redditor(name=username)
+
+            root_dir = os.path.join(os.path.join(os.path.join(
+                output_path, "www.reddit.com"), "u"), username)
+
+            if not os.path.exists(root_dir):
+                os.makedirs(root_dir)
+
+            with open(os.path.join(root_dir, 'user.json'), 'w') as file:
+                user_dict = {}
+                user_dict["comment_karma"] = user.comment_karma
+                user_dict["created_utc"] = int(user.created_utc)
+                user_dict["has_verified_email"] = user.has_verified_email
+                user_dict["icon_img"] = user.icon_img
+                user_dict["id"] = user.id
+                user_dict["is_employee"] = user.is_employee
+                user_dict["is_friend"] = user.is_friend
+                user_dict["is_mod"] = user.is_mod
+                user_dict["is_gold"] = user.is_gold
+                try:
+                    user_dict["is_suspended"] = user.is_suspended
+                except Exception as e:
+                    user_dict["is_suspended"] = None
+                user_dict["link_karma"] = user.link_karma
+                user_dict["name"] = user.name
+
+                file.write(json.dumps(user_dict, indent=2))
+
     def download_comments(self, args):
         output_path = args.o
 
