@@ -8,6 +8,7 @@ from datetime import datetime
 import os
 from io import StringIO
 import json
+import mimetypes
 import ffmpeg
 import praw
 from pprint import pprint
@@ -391,9 +392,49 @@ class SubmissionDownloader:
         except Exception as e:
             return ""
 
+    def guess_extension(self, url):
+        response = requests.get(url)
+        content_type = response.headers['content-type']
+        return mimetypes.guess_extension(content_type)
+
+    def get_redirect_url(self, url):
+        r = requests.get(url)
+        return r.url
+
     def download_gfycat_or_redgif(self, submission, output_dir):
+        # Check if gfycat redirects to gifdeliverynetwork
+        redirect_url = self.get_redirect_url(submission.url)
+        if "gfycat.com" in submission.url and "gifdeliverynetwork.com" in redirect_url:
+            self.logger.spam(
+                self.indent_2 + "This is a gfycat link that redirects to gifdeliverynetwork.com")
+            try:
+                # Gfycat link that redirects to gifdeliverynetwork
+                # True source in this case is hiding in redgifs.com
+                response = requests.get(redirect_url)
+                html = BeautifulSoup(response.content, features="html.parser")
+                links = html.find_all()
+                for i in links:
+                    if "src" in str(i):
+                        attrs = i.attrs
+                        if "src" in attrs:
+                            src = attrs["src"]
+                            if "redgifs.com/" in src:
+                                self.logger.spam(
+                                    self.indent_2 + "Found embedded media at " + src)
+                                filename = src.split("/")[-1]
+                                save_path = os.path.join(output_dir, filename)
+                                try:
+                                    r = requests.get(src)
+                                    with open(save_path, 'wb') as outfile:
+                                        outfile.write(r.content)
+                                except Exception as e:
+                                    self.print_formatted_error(e)
+            except Exception as e:
+                self.print_formatted_error(e)
+
         self.logger.spam(
             self.indent_2 + "Looking for submission.preview.reddit_video_preview.fallback_url")
+
         preview = None
         try:
             preview = getattr(submission, "preview")
@@ -409,6 +450,21 @@ class SubmissionDownloader:
                             return
                         except Exception as e:
                             self.print_formatted_error(e)
+                elif "images" in preview:
+                    if "source" in preview["images"][0]:
+                        source_url = preview["images"][0]["source"]["url"]
+                        try:
+                            extension = self.guess_extension(source_url)
+                            filename = submission.url.split("/")[-1] + extension
+                            save_path = os.path.join(output_dir, filename)
+                            try:
+                                urllib.request.urlretrieve(source_url, save_path)
+                                return
+                            except Exception as e:
+                                self.print_formatted_error(e)
+                        except Exception as e:
+                            self.print_formatted_error(e)
+
         except Exception as e:
            self.print_formatted_error(e)
 
