@@ -111,10 +111,10 @@ optional arguments:
   -h, --help            show this help message and exit
 ```
 
-#### Example Usage: Download gilded submissions by user
+#### Example Usage: Download top 10 comments submissions by user
 
 ```console
-saveddit user "Poem_for_your_sprog" gilded -o ~/Desktop
+saveddit user "Poem_for_your_sprog" comments -s top -l 10 -o ~/Desktop
 ```
 
 ### Example Output
