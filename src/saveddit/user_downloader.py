@@ -106,7 +106,7 @@ class UserDownloader():
                         comment_body = re.sub(r'\W+', '_', comment_body)
                         comment_filename = str(i).zfill(3) + "_Comment_" + \
                             comment_body + "..." + ".json"
-                        self.logger.verbose(self.indent_1 + comment.id + ' - "' + comment.body[0:64].replace("\n", "").replace("\r", "")  + '..."')
+                        self.logger.spam(self.indent_1 + comment.id + ' - "' + comment.body[0:64].replace("\n", "").replace("\r", "")  + '..."')
 
                         with open(os.path.join(category_dir, comment_filename), 'w') as file:
                             comment_dict = {}

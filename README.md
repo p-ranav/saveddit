@@ -4,14 +4,10 @@
 
 `saveddit` is a bulk media downloader for reddit.
 
-<p align="center">
-  <img src="images/demo.gif"/> 
-</p>
-
 ## Quick Start
 
 ```console
-foo@bar:~$ pip3 install saveddit
+pip3 install saveddit
 ```
 
 ### Setting up authorization
@@ -55,100 +51,120 @@ reddit_client_id: '<YOUR_REDDIT_CLIENT_ID>'
 reddit_client_secret: '<YOUR_REDDIT_CLIENT_SECRET>'
 ```
 
-### Run `saveddit` to start downloading content from reddit
+* If you plan on using the `user` API, also add your username and password to the file.
+
+```yaml
+reddit_username: '<YOUR_REDDIT_USERNAME>'
+reddit_password: '<YOUR_REDDIT_PASSWORD>'
+```
+
+### Download from Subreddit
 
 ```console
-foo@bar:~$ saveddit --help
-                                .___  .___.__  __
-   ___________ ___  __ ____   __| _/__| _/|__|/  |_
-  /  ___/\__  \\  \/ // __ \ / __ |/ __ | |  \   __\
-  \___ \  / __ \\   /\  ___// /_/ / /_/ | |  ||  |
- /____  >(____  /\_/  \___  >____ \____ | |__||__|
-      \/      \/          \/     \/    \/
+foo@bar:~$ saveddit subreddit -h
+Retrieving configuration from /Users/pranav/.saveddit/user_config.yaml file
 
- Downloader for Reddit
- version : v2.0.0
- URL     : https://github.com/p-ranav/saveddit
+usage: saveddit subreddit [-h] [-f categories [categories ...]] [-l post_limit] [--skip-comments] [--skip-meta] [--skip-videos] -o output_path subreddits [subreddits ...]
 
-usage: saveddit [-h] -r subreddits [subreddits ...] [-f categories [categories ...]] [-l post_limit] [--skip-comments] [--skip-meta] [--skip-videos] -o output_path
+positional arguments:
+  subreddits            Names of subreddits to download, e.g., AskReddit
 
 optional arguments:
   -h, --help            show this help message and exit
-  -r subreddits [subreddits ...]
-                        Names of subreddits to download, e.g., AskReddit
   -f categories [categories ...]
                         Categories of posts to download (default: ['hot', 'new', 'rising', 'controversial', 'top', 'gilded'])
   -l post_limit         Limit the number of submissions downloaded in each category (default: None, i.e., all submissions)
   --skip-comments       When true, saveddit will not save comments to a comments.json file
-  --skip-meta           When true, saveddit will not save meta to a submission.json file
+  --skip-meta           When true, saveddit will not save meta to a submission.json file on submissions
   --skip-videos         When true, saveddit will not download videos (e.g., gfycat, redgifs, youtube, v.redd.it links)
   -o output_path        Directory where saveddit will save downloaded content
 ```
 
-### Example Usage
-
-The following will:
-* Download from the `/r/pics` subreddit
-* Download submissions from the `/r/pics/hot`
-* Limit to `5` submissions
-* Save downloads to `/home/pranav/Downloads/Reddit/.`
+#### Example Usage: Download the hottest 15 posts each from /r/pics and /r/aww
 
 ```console
-foo@bar:~$ saveddit -r pics -f hot -l 5 -o /home/pranav/Downloads/Reddit/.
+foo@bar:~$ saveddit subreddit pics aww -f hot -l 5 -o ~/Desktop
 ```
 
 You can download from multiple subreddits and use multiple filters:
 
 ```console
-foo@bar:~$ saveddit -r funny AskReddit -f hot top new rising -l 5 -o /home/pranav/Downloads/Reddit/.
+foo@bar:~$ saveddit subreddit funny AskReddit -f hot top new rising -l 5 -o ~/Downloads/Reddit/.
+```
+
+### Download from User's page
+
+```console
+foo@bar:~$ saveddit user -h
+Retrieving configuration from /Users/pranav/.saveddit/user_config.yaml file
+
+usage: saveddit user [-h] users [users ...] {saved,gilded,submitted,upvoted,comments} ...
+
+positional arguments:
+  users                 Names of users to download, e.g., Poem_for_your_sprog
+  {saved,gilded,submitted,upvoted,comments}
+
+optional arguments:
+  -h, --help            show this help message and exit
+```
+
+#### Example Usage: Download gilded submissions by user
+
+```console
+saveddit user "Poem_for_your_sprog" gilded -o ~/Desktop
 ```
 
 ### Example Output
 
 ```console
-foo@bar:~$ tree /Users/pranav/Downloads/Reddit
-/Users/pranav/Downloads/Reddit
-└── www.reddit.com
-    └── r
-        └── aww
-            └── new
-                ├── 0000_Squirrel_tickles
-                │   ├── comments.json
-                │   ├── files
-                │   │   ├── 891cwv3f6gr61.mp4
-                │   │   ├── 891cwv3f6gr61_audio.mp4
-                │   │   └── 891cwv3f6gr61_video.mp4
-                │   └── submission.json
-                ├── 0001_meet_my_friend_Commando
-                │   ├── comments.json
-                │   ├── files
-                │   │   └── ynutef1e6gr61.jpg
-                │   └── submission.json
-                ├── 0002_Got_a_surprise_when_I_got_home__�\237\220�
-                │   ├── comments.json
-                │   ├── files
-                │   │   └── eeo7zrih6gr61.jpg
-                │   └── submission.json
-                ├── 0003_Reddit__meet_Atlas__Newest_member_of_the_fam
-                │   ├── comments.json
-                │   ├── files
-                │   │   └── kl9aqogb6gr61.jpg
-                │   └── submission.json
-                ├── 0004_Cute_otter_with_cute_hats
-                │   ├── comments.json
-                │   ├── files
-                │   │   ├── p485p64hhcr61.jpg
-                │   │   ├── pso5vkihhcr61.jpg
-                │   │   ├── rrxbx7ehhcr61.jpg
-                │   │   └── uevyyqlhhcr61.jpg
-                │   └── submission.json
-                └── 0005_He_loves_this_strange_position_�\237\230\202
-                    ├── comments.json
-                    ├── files
-                    │   └── u7q25wx86gr61.jpg
-                    └── submission.json
+foo@bar:~$ tree ~/Downloads/www.reddit.com
+/Users/pranav/Downloads/www.reddit.com
+├── r
+│   └── aww
+│       └── new
+│           ├── 000_We_decided_to_foster_a_litter_of...
+│           │   ├── comments.json
+│           │   ├── files
+│           │   │   └── 7fjt2gkp32s61.jpg
+│           │   └── submission.json
+│           ├── 001_Besties_
+│           │   ├── comments.json
+│           │   ├── files
+│           │   │   └── zklpm1qo32s61.jpg
+│           │   └── submission.json
+│           ├── 002_My_cat_dice_with_his_best_friend...
+│           │   ├── comments.json
+│           │   ├── files
+│           │   │   └── av3yrbmo32s61.jpg
+│           │   └── submission.json
+│           ├── 003_Digging_makes_her_the_happiest_
+│           │   ├── comments.json
+│           │   ├── files
+│           │   │   └── zjw5f3yl32s61.jpg
+│           │   └── submission.json
+│           └── 004_Our_beloved_pup_needs_some_help_...
+│               ├── comments.json
+│               ├── files
+│               │   ├── 66su4i9b32s61.mp4
+│               │   ├── 66su4i9b32s61_audio.mp4
+│               │   └── 66su4i9b32s61_video.mp4
+│               └── submission.json
+└── u
+    └── Poem_for_your_sprog
+        └── gilded
+            ├── 000_Comment__The_guy_was_the_biggest_deal_an...
+            │   └── comments.json
+            ├── 001_Comment__tl_dr_life_is_long_Journey_s_h...
+            │   └── comments.json
+            ├── 002_Comment_From_Northwind_mine_to_Talos_shr...
+            │   └── comments.json
+            ├── 003_Comment__I_feel_terrible_having_people_j...
+            │   └── comments.json
+            └── 004_Comment_I_often_stop_a_time_or_two_At_...
+                └── comments.json
 
-16 directories, 23 files
+21 directories, 22 files
+(saveddit_prod) (base)
 ```
 
 ## Supported Links:
