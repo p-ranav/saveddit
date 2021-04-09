@@ -57,7 +57,7 @@ foo@bar:~$ saveddit --help
       \/      \/          \/     \/    \/
 
  Downloader for Reddit
- version : v1.0.0
+ version : v2.0.0
  URL     : https://github.com/p-ranav/saveddit
 
 usage: saveddit [-h] -r subreddits [subreddits ...] [-f categories [categories ...]] [-l post_limit] [--skip-comments] [--skip-meta] [--skip-videos] -o output_path
