@@ -113,6 +113,32 @@ def main():
                         help='Directory where saveddit will save downloaded content'
                         )
 
+    # user.gilded subparser
+    gilded_parser = user_subparsers.add_parser('gilded')
+    gilded_parser.add_argument('--skip-meta',
+                        default=False,
+                        action='store_true',
+                        help='When true, saveddit will not save meta to a submission.json file on submissions')
+    gilded_parser.add_argument('--skip-comments',
+                        default=False,
+                        action='store_true',
+                        help='When true, saveddit will not save comments to a comments.json file')
+    gilded_parser.add_argument('--skip-videos',
+                        default=False,
+                        action='store_true',
+                        help='When true, saveddit will not download videos (e.g., gfycat, redgifs, youtube, v.redd.it links)')
+    gilded_parser.add_argument('-l',
+                        default=UserDownloader.DEFAULT_POST_LIMIT,
+                        metavar='post_limit',
+                        type=check_positive,
+                        help='Limit the number of saved submissions downloaded (default: %(default)s, i.e., all submissions)')
+    gilded_parser.add_argument('-o',
+                        required=True,
+                        type=str,
+                        metavar='output_path',
+                        help='Directory where saveddit will save downloaded content'
+                        )
+
     # user.submitted subparser
     submitted_parser = user_subparsers.add_parser('submitted')
     submitted_parser.add_argument('-s',
@@ -206,6 +232,8 @@ def main():
             downloader.download_saved(args)
         elif args.user_subparser_name == "upvoted":
             downloader.download_upvoted(args)
+        elif args.user_subparser_name == "gilded":
+            downloader.download_gilded(args)
 
 if __name__ == "__main__":
     main()

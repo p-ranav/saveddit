@@ -234,7 +234,7 @@ class UserDownloader():
                     self.indent_2 = ' ' * len(self.indent_1) + "- "
                     if isinstance(s, praw.models.Comment) and not skip_comments:
                         self.logger.verbose(
-                            prefix_str + "Comment `" + str(s.id) + "` by " + str(s.author))
+                            prefix_str + "Comment `" + str(s.id) + "` by " + str(s.author) + " \"" + s.body[0:32].replace("\n", "").replace("\r", "") + "...\"")
 
                         comment_body = s.body
                         comment_body = comment_body[0:32]
@@ -254,6 +254,55 @@ class UserDownloader():
                         pass
             except Exception as e:
                 self.logger.error("Unable to download saved for user `" + username + "` - " + str(e))
+
+    def download_gilded(self, args):
+        output_path = args.o
+
+        for username in args.users:
+            user = self.reddit.redditor(name=username)
+
+            self.logger.notice("Downloading from /u/" + username + "/gilded")
+
+            root_dir = os.path.join(os.path.join(os.path.join(
+                output_path, "www.reddit.com"), "u"), username)
+
+            try:
+                post_limit = args.l
+                skip_meta = args.skip_meta
+                skip_videos = args.skip_videos
+                skip_comments = args.skip_comments
+                comment_limit = 0 # top-level comments ONLY
+
+                saved_dir = os.path.join(root_dir, "gilded")
+                if not os.path.exists(saved_dir):
+                    os.makedirs(saved_dir)
+
+                for i, s in enumerate(user.gilded(limit=post_limit)):
+                    prefix_str = '#' + str(i).zfill(3) + ' '
+                    self.indent_1 = ' ' * len(prefix_str) + "* "
+                    self.indent_2 = ' ' * len(self.indent_1) + "- "
+                    if isinstance(s, praw.models.Comment) and not skip_comments:
+                        self.logger.verbose(
+                            prefix_str + "Comment `" + str(s.id) + "` by " + str(s.author) + " \"" + s.body[0:32].replace("\n", "").replace("\r", "") + "...\"")
+
+                        comment_body = s.body
+                        comment_body = comment_body[0:32]
+                        comment_body = re.sub(r'\W+', '_', comment_body)
+                        post_dir = str(i).zfill(3) + "_Comment_" + \
+                            comment_body + "..."
+                        submission_dir = os.path.join(saved_dir, post_dir)
+                        self.download_saved_comment(s, submission_dir)
+                    elif isinstance(s, praw.models.Comment):
+                        self.logger.verbose(
+                            prefix_str + "Comment `" + str(s.id) + "` by " + str(s.author))
+                        self.logger.spam(self.indent_2 + "Skipping comment")
+                    elif isinstance(s, praw.models.Submission):
+                        SubmissionDownloader(s, i, self.logger, saved_dir, skip_videos, skip_meta, skip_comments, comment_limit,
+                                            {'imgur_client_id': UserDownloader.IMGUR_CLIENT_ID})
+                    else:
+                        pass
+            except Exception as e:
+                self.logger.error("Unable to download gilded for user `" + username + "` - " + str(e))
 
     def print_formatted_error(self, e):
         for line in str(e).split("\n"):
