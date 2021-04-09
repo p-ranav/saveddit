@@ -36,18 +36,13 @@ Exiting
 
 * Open the generated `~/.saveddit/user_config.yaml`
 * Update the client IDs and secrets from the previous step
+* If you plan on using the `user` API, add your reddit username as well
 
 ```yaml
 imgur_client_id: '<YOUR_IMGUR_CLIENT_ID>'
 reddit_client_id: '<YOUR_REDDIT_CLIENT_ID>'
 reddit_client_secret: '<YOUR_REDDIT_CLIENT_SECRET>'
-```
-
-* If you plan on using the `user` API, also add your username and password to the file.
-
-```yaml
 reddit_username: '<YOUR_REDDIT_USERNAME>'
-reddit_password: '<YOUR_REDDIT_PASSWORD>'
 ```
 
 ### Download from Subreddit

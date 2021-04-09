@@ -3,6 +3,7 @@ from colorama import Fore, Style
 from datetime import datetime, timezone
 import logging
 import verboselogs
+import getpass
 import json
 import os
 import praw
@@ -10,6 +11,7 @@ from pprint import pprint
 import re
 from saveddit.submission_downloader import SubmissionDownloader
 from saveddit.subreddit_downloader import SubredditDownloader
+import sys
 from tqdm import tqdm
 
 
@@ -28,15 +30,15 @@ class UserDownloader():
         print('Exiting now')
         exit()
 
-    try:
-        REDDIT_PASSWORD = config['reddit_password']
-    except Exception as e:
-        print(Fore.RED + 'ERROR: Failed to find value for "reddit_password" in user_config.yaml')
-        print("Create an entry in user_config.yaml:")
-        print("  reddit_password: '<YOUR_REDDIT_PASSWORD>'")
-        print(Style.RESET_ALL, end="")
-        print('Exiting now')
-        exit()
+    REDDIT_PASSWORD = None
+    if sys.stdin.isatty():
+        print("Username: " + REDDIT_USERNAME)
+        REDDIT_PASSWORD = getpass.getpass("Password: ")
+    else:
+        # echo "foobar" > password
+        # saveddit user .... < password
+        REDDIT_PASSWORD = sys.stdin.readline().rstrip()
+    print(REDDIT_USERNAME, REDDIT_PASSWORD)
 
     IMGUR_CLIENT_ID = config['imgur_client_id']
     DEFAULT_CATEGORIES = ["comments", "submitted", "saved"]
