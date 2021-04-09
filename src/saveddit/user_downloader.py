@@ -175,6 +175,37 @@ class UserDownloader():
             except Exception as e:
                 self.logger.error("Unable to download submitted posts for user `" + username + "` - " + str(e))
 
+    def download_upvoted(self, args):
+        output_path = args.o
+
+        for username in args.users:
+            user = self.reddit.redditor(name=username)
+
+            self.logger.notice("Downloading from /u/" + username + "/upvoted")
+
+            root_dir = os.path.join(os.path.join(os.path.join(
+                output_path, "www.reddit.com"), "u"), username)
+
+            try:
+                post_limit = args.l
+                skip_meta = args.skip_meta
+                skip_videos = args.skip_videos
+                skip_comments = args.skip_comments
+                comment_limit = 0 # top-level comments ONLY
+
+                upvoted_dir = os.path.join(root_dir, "upvoted")
+                if not os.path.exists(upvoted_dir):
+                    os.makedirs(upvoted_dir)
+
+                for i, s in enumerate(user.upvoted(limit=post_limit)):
+                    prefix_str = '#' + str(i).zfill(3) + ' '
+                    self.indent_1 = ' ' * len(prefix_str) + "* "
+                    self.indent_2 = ' ' * len(self.indent_1) + "- "
+                    SubmissionDownloader(s, i, self.logger, upvoted_dir, skip_videos, skip_meta, skip_comments, comment_limit,
+                                            {'imgur_client_id': UserDownloader.IMGUR_CLIENT_ID})
+            except Exception as e:
+                self.logger.error("Unable to download upvoted posts for user `" + username + "` - " + str(e))
+
     def download_saved(self, args):
         output_path = args.o
 

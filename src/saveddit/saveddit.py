@@ -85,6 +85,7 @@ def main():
 
 
     user_subparsers = user_parser.add_subparsers(dest="user_subparser_name")
+    user_subparsers.required = True
 
     # user.saved subparser
     saved_parser = user_subparsers.add_parser('saved')
@@ -143,6 +144,32 @@ def main():
                         help='Directory where saveddit will save downloaded posts'
                         )
 
+    # user.upvoted subparser
+    upvoted_parser = user_subparsers.add_parser('upvoted')
+    upvoted_parser.add_argument('--skip-comments',
+                        default=False,
+                        action='store_true',
+                        help='When true, saveddit will not save comments to a comments.json file for the upvoted submissions')
+    upvoted_parser.add_argument('--skip-meta',
+                        default=False,
+                        action='store_true',
+                        help='When true, saveddit will not save meta to a submission.json file on upvoted submissions')
+    upvoted_parser.add_argument('--skip-videos',
+                        default=False,
+                        action='store_true',
+                        help='When true, saveddit will not download videos (e.g., gfycat, redgifs, youtube, v.redd.it links)')
+    upvoted_parser.add_argument('-l',
+                        default=UserDownloader.DEFAULT_POST_LIMIT,
+                        metavar='post_limit',
+                        type=check_positive,
+                        help='Limit the number of submissions downloaded (default: %(default)s, i.e., all submissions)')
+    upvoted_parser.add_argument('-o',
+                        required=True,
+                        type=str,
+                        metavar='output_path',
+                        help='Directory where saveddit will save downloaded posts'
+                        )
+
     # user.comments subparser
     comments_parser = user_subparsers.add_parser('comments')
     comments_parser.add_argument('-s',
@@ -177,6 +204,8 @@ def main():
             downloader.download_submitted(args)
         elif args.user_subparser_name == "saved":
             downloader.download_saved(args)
+        elif args.user_subparser_name == "upvoted":
+            downloader.download_upvoted(args)
 
 if __name__ == "__main__":
     main()
