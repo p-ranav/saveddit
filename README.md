@@ -2,12 +2,7 @@
   <img height="50" src="images/logo.png"/>
 </p>
 
-`saveddit` is a bulk media downloader for reddit.
-
-* Download from subreddits - submissions, comments, images, and videos
-* Download from user pages - comments, submissions, gilded, upvoted, and saved posts
-
-## Quick Start
+`saveddit` is a bulk media downloader for reddit
 
 ```console
 pip3 install saveddit
