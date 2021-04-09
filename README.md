@@ -4,6 +4,9 @@
 
 `saveddit` is a bulk media downloader for reddit.
 
+* Download from subreddits - submissions, comments, images, and videos
+* Download from user pages - comments, submissions, gilded, upvoted, and saved posts
+
 ## Quick Start
 
 ```console
