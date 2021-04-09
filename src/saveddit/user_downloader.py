@@ -20,18 +20,14 @@ class UserDownloader():
 
     REDDIT_CLIENT_ID = config['reddit_client_id']
     REDDIT_CLIENT_SECRET = config['reddit_client_secret']
+    REDDIT_USERNAME = None
     try:
         REDDIT_USERNAME = config['reddit_username']
     except Exception as e:
-        print(Fore.RED + 'ERROR: Failed to find value for "reddit_username" in user_config.yaml')
-        print("Create an entry in user_config.yaml:")
-        print("  'reddit_username': <YOUR_REDDIT_USERNAME>")
-        print(Style.RESET_ALL, end="")
-        print('Exiting now')
-        exit()
+        pass
 
     REDDIT_PASSWORD = None
-    if len(REDDIT_USERNAME):
+    if REDDIT_USERNAME:
         if sys.stdin.isatty():
             print("Username: " + REDDIT_USERNAME)
             REDDIT_PASSWORD = getpass.getpass("Password: ")
@@ -63,20 +59,20 @@ class UserDownloader():
         coloredlogs.install(level='SPAM', logger=self.logger,
                             fmt='%(message)s', level_styles=level_styles)
 
-        if not len(UserDownloader.REDDIT_USERNAME):
+        if not UserDownloader.REDDIT_USERNAME:
             self.logger.error("`reddit_username` in user_config.yaml is empty")
             self.logger.error("If you plan on using the user API of saveddit, then add your username to user_config.yaml")
             print("Exiting now")
             exit()
-
-        if not len(UserDownloader.REDDIT_PASSWORD):
-            if sys.stdin.isatty():
-                print("Username: " + REDDIT_USERNAME)
-                REDDIT_PASSWORD = getpass.getpass("Password: ")
-            else:
-                # echo "foobar" > password
-                # saveddit user .... < password
-                REDDIT_PASSWORD = sys.stdin.readline().rstrip()
+        else:
+            if not len(UserDownloader.REDDIT_PASSWORD):
+                if sys.stdin.isatty():
+                    print("Username: " + REDDIT_USERNAME)
+                    REDDIT_PASSWORD = getpass.getpass("Password: ")
+                else:
+                    # echo "foobar" > password
+                    # saveddit user .... < password
+                    REDDIT_PASSWORD = sys.stdin.readline().rstrip()
 
         self.reddit = praw.Reddit(
             client_id=UserDownloader.REDDIT_CLIENT_ID,

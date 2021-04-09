@@ -13,7 +13,7 @@ def asciiart():
       \/      \/          \/     \/    \/
 
  Downloader for Reddit
- version : v2.0.2
+ version : v2.0.3
  URL     : https://github.com/p-ranav/saveddit
 '''
 
