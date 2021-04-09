@@ -206,13 +206,16 @@ class UserDownloader:
 
                 if category_function:
                     for i, s in enumerate(category_function(limit=post_limit)):
-                        prefix_str = '#' + str(i).zfill(3) + ' '
-                        self.indent_1 = ' ' * len(prefix_str) + "* "
-                        self.indent_2 = ' ' * len(self.indent_1) + "- "
-                        SubmissionDownloader(s, i, self.logger, category_dir, skip_videos, skip_meta, skip_comments, comment_limit,
-                                                {'imgur_client_id': UserDownloader.IMGUR_CLIENT_ID})
+                        try:
+                            prefix_str = '#' + str(i).zfill(3) + ' '
+                            self.indent_1 = ' ' * len(prefix_str) + "* "
+                            self.indent_2 = ' ' * len(self.indent_1) + "- "
+                            SubmissionDownloader(s, i, self.logger, category_dir, skip_videos, skip_meta, skip_comments, comment_limit,
+                                                    {'imgur_client_id': UserDownloader.IMGUR_CLIENT_ID})
+                        except Exception as e:
+                            self.logger.error(self.indent_2 + "Unable to download post #" + str(i) + " for user `" + username + "` - " + str(e))
             except Exception as e:
-                self.logger.error("Unable to download submitted posts for user `" + username + "` - " + str(e))
+                self.logger.error(self.indent_1 + "Unable to download submitted posts for user `" + username + "` - " + str(e))
 
     def download_upvoted(self, args):
         output_path = args.o
@@ -237,11 +240,14 @@ class UserDownloader:
                     os.makedirs(upvoted_dir)
 
                 for i, s in enumerate(user.upvoted(limit=post_limit)):
-                    prefix_str = '#' + str(i).zfill(3) + ' '
-                    self.indent_1 = ' ' * len(prefix_str) + "* "
-                    self.indent_2 = ' ' * len(self.indent_1) + "- "
-                    SubmissionDownloader(s, i, self.logger, upvoted_dir, skip_videos, skip_meta, skip_comments, comment_limit,
-                                            {'imgur_client_id': UserDownloader.IMGUR_CLIENT_ID})
+                    try:
+                        prefix_str = '#' + str(i).zfill(3) + ' '
+                        self.indent_1 = ' ' * len(prefix_str) + "* "
+                        self.indent_2 = ' ' * len(self.indent_1) + "- "
+                        SubmissionDownloader(s, i, self.logger, upvoted_dir, skip_videos, skip_meta, skip_comments, comment_limit,
+                                                {'imgur_client_id': UserDownloader.IMGUR_CLIENT_ID})
+                    except Exception as e:
+                        self.logger.error(self.indent_2 + "Unable to download post #" + str(i) + " for user `" + username + "` - " + str(e))
             except Exception as e:
                 self.logger.error("Unable to download upvoted posts for user `" + username + "` - " + str(e))
 
@@ -268,29 +274,32 @@ class UserDownloader:
                     os.makedirs(saved_dir)
 
                 for i, s in enumerate(user.saved(limit=post_limit)):
-                    prefix_str = '#' + str(i).zfill(3) + ' '
-                    self.indent_1 = ' ' * len(prefix_str) + "* "
-                    self.indent_2 = ' ' * len(self.indent_1) + "- "
-                    if isinstance(s, praw.models.Comment) and not skip_comments:
-                        self.logger.verbose(
-                            prefix_str + "Comment `" + str(s.id) + "` by " + str(s.author) + " \"" + s.body[0:32].replace("\n", "").replace("\r", "") + "...\"")
+                    try:
+                        prefix_str = '#' + str(i).zfill(3) + ' '
+                        self.indent_1 = ' ' * len(prefix_str) + "* "
+                        self.indent_2 = ' ' * len(self.indent_1) + "- "
+                        if isinstance(s, praw.models.Comment) and not skip_comments:
+                            self.logger.verbose(
+                                prefix_str + "Comment `" + str(s.id) + "` by " + str(s.author) + " \"" + s.body[0:32].replace("\n", "").replace("\r", "") + "...\"")
 
-                        comment_body = s.body
-                        comment_body = comment_body[0:32]
-                        comment_body = re.sub(r'\W+', '_', comment_body)
-                        post_dir = str(i).zfill(3) + "_Comment_" + \
-                            comment_body + "..."
-                        submission_dir = os.path.join(saved_dir, post_dir)
-                        self.download_saved_comment(s, submission_dir)
-                    elif isinstance(s, praw.models.Comment):
-                        self.logger.verbose(
-                            prefix_str + "Comment `" + str(s.id) + "` by " + str(s.author))
-                        self.logger.spam(self.indent_2 + "Skipping comment")
-                    elif isinstance(s, praw.models.Submission):
-                        SubmissionDownloader(s, i, self.logger, saved_dir, skip_videos, skip_meta, skip_comments, comment_limit,
-                                            {'imgur_client_id': UserDownloader.IMGUR_CLIENT_ID})
-                    else:
-                        pass
+                            comment_body = s.body
+                            comment_body = comment_body[0:32]
+                            comment_body = re.sub(r'\W+', '_', comment_body)
+                            post_dir = str(i).zfill(3) + "_Comment_" + \
+                                comment_body + "..."
+                            submission_dir = os.path.join(saved_dir, post_dir)
+                            self.download_saved_comment(s, submission_dir)
+                        elif isinstance(s, praw.models.Comment):
+                            self.logger.verbose(
+                                prefix_str + "Comment `" + str(s.id) + "` by " + str(s.author))
+                            self.logger.spam(self.indent_2 + "Skipping comment")
+                        elif isinstance(s, praw.models.Submission):
+                            SubmissionDownloader(s, i, self.logger, saved_dir, skip_videos, skip_meta, skip_comments, comment_limit,
+                                                {'imgur_client_id': UserDownloader.IMGUR_CLIENT_ID})
+                        else:
+                            pass
+                    except Exception as e:
+                        self.logger.error(self.indent_2 + "Unable to download #" + str(i) + " for user `" + username + "` - " + str(e))
             except Exception as e:
                 self.logger.error("Unable to download saved for user `" + username + "` - " + str(e))
 
@@ -317,29 +326,32 @@ class UserDownloader:
                     os.makedirs(saved_dir)
 
                 for i, s in enumerate(user.gilded(limit=post_limit)):
-                    prefix_str = '#' + str(i).zfill(3) + ' '
-                    self.indent_1 = ' ' * len(prefix_str) + "* "
-                    self.indent_2 = ' ' * len(self.indent_1) + "- "
-                    if isinstance(s, praw.models.Comment) and not skip_comments:
-                        self.logger.verbose(
-                            prefix_str + "Comment `" + str(s.id) + "` by " + str(s.author) + " \"" + s.body[0:32].replace("\n", "").replace("\r", "") + "...\"")
+                    try:
+                        prefix_str = '#' + str(i).zfill(3) + ' '
+                        self.indent_1 = ' ' * len(prefix_str) + "* "
+                        self.indent_2 = ' ' * len(self.indent_1) + "- "
+                        if isinstance(s, praw.models.Comment) and not skip_comments:
+                            self.logger.verbose(
+                                prefix_str + "Comment `" + str(s.id) + "` by " + str(s.author) + " \"" + s.body[0:32].replace("\n", "").replace("\r", "") + "...\"")
 
-                        comment_body = s.body
-                        comment_body = comment_body[0:32]
-                        comment_body = re.sub(r'\W+', '_', comment_body)
-                        post_dir = str(i).zfill(3) + "_Comment_" + \
-                            comment_body + "..."
-                        submission_dir = os.path.join(saved_dir, post_dir)
-                        self.download_saved_comment(s, submission_dir)
-                    elif isinstance(s, praw.models.Comment):
-                        self.logger.verbose(
-                            prefix_str + "Comment `" + str(s.id) + "` by " + str(s.author))
-                        self.logger.spam(self.indent_2 + "Skipping comment")
-                    elif isinstance(s, praw.models.Submission):
-                        SubmissionDownloader(s, i, self.logger, saved_dir, skip_videos, skip_meta, skip_comments, comment_limit,
-                                            {'imgur_client_id': UserDownloader.IMGUR_CLIENT_ID})
-                    else:
-                        pass
+                            comment_body = s.body
+                            comment_body = comment_body[0:32]
+                            comment_body = re.sub(r'\W+', '_', comment_body)
+                            post_dir = str(i).zfill(3) + "_Comment_" + \
+                                comment_body + "..."
+                            submission_dir = os.path.join(saved_dir, post_dir)
+                            self.download_saved_comment(s, submission_dir)
+                        elif isinstance(s, praw.models.Comment):
+                            self.logger.verbose(
+                                prefix_str + "Comment `" + str(s.id) + "` by " + str(s.author))
+                            self.logger.spam(self.indent_2 + "Skipping comment")
+                        elif isinstance(s, praw.models.Submission):
+                            SubmissionDownloader(s, i, self.logger, saved_dir, skip_videos, skip_meta, skip_comments, comment_limit,
+                                                {'imgur_client_id': UserDownloader.IMGUR_CLIENT_ID})
+                        else:
+                            pass
+                    except Exception as e:
+                        self.logger.error(self.indent_2 + "Unable to download #" + str(i) + " for user `" + username + "` - " + str(e))
             except Exception as e:
                 self.logger.error("Unable to download gilded for user `" + username + "` - " + str(e))
 
