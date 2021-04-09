@@ -31,14 +31,14 @@ class UserDownloader():
         exit()
 
     REDDIT_PASSWORD = None
-    if sys.stdin.isatty():
-        print("Username: " + REDDIT_USERNAME)
-        REDDIT_PASSWORD = getpass.getpass("Password: ")
-    else:
-        # echo "foobar" > password
-        # saveddit user .... < password
-        REDDIT_PASSWORD = sys.stdin.readline().rstrip()
-    print(REDDIT_USERNAME, REDDIT_PASSWORD)
+    if len(REDDIT_USERNAME):
+        if sys.stdin.isatty():
+            print("Username: " + REDDIT_USERNAME)
+            REDDIT_PASSWORD = getpass.getpass("Password: ")
+        else:
+            # echo "foobar" > password
+            # saveddit user .... < password
+            REDDIT_PASSWORD = sys.stdin.readline().rstrip()
 
     IMGUR_CLIENT_ID = config['imgur_client_id']
     DEFAULT_CATEGORIES = ["comments", "submitted", "saved"]
@@ -62,6 +62,21 @@ class UserDownloader():
         }
         coloredlogs.install(level='SPAM', logger=self.logger,
                             fmt='%(message)s', level_styles=level_styles)
+
+        if not len(UserDownloader.REDDIT_USERNAME):
+            self.logger.error("`reddit_username` in user_config.yaml is empty")
+            self.logger.error("If you plan on using the user API of saveddit, then add your username to user_config.yaml")
+            print("Exiting now")
+            exit()
+
+        if not len(UserDownloader.REDDIT_PASSWORD):
+            if sys.stdin.isatty():
+                print("Username: " + REDDIT_USERNAME)
+                REDDIT_PASSWORD = getpass.getpass("Password: ")
+            else:
+                # echo "foobar" > password
+                # saveddit user .... < password
+                REDDIT_PASSWORD = sys.stdin.readline().rstrip()
 
         self.reddit = praw.Reddit(
             client_id=UserDownloader.REDDIT_CLIENT_ID,
