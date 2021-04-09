@@ -1,7 +1,8 @@
 import argparse
-from saveddit.subreddit_downloader import SubredditDownloader
-from saveddit.user_downloader import UserDownloader
 import sys
+from saveddit.subreddit_downloader_config import SubredditDownloaderConfig
+from saveddit.user_downloader_config import UserDownloaderConfig
+from saveddit._version import __version__
 
 
 def asciiart():
@@ -13,7 +14,7 @@ def asciiart():
       \/      \/          \/     \/    \/
 
  Downloader for Reddit
- version : v2.0.4
+ version : ''' + __version__ + '''
  URL     : https://github.com/p-ranav/saveddit
 '''
 
@@ -35,10 +36,11 @@ class UniqueAppendAction(argparse.Action):
         setattr(namespace, self.dest, unique_values)
 
 def main():
-    print(asciiart())
     argv = sys.argv[1:]
 
     parser = argparse.ArgumentParser(prog="saveddit")
+    parser.add_argument('-v', '--version', action='version', version='%(prog)s ' + __version__)
+
     subparsers = parser.add_subparsers(dest="subparser_name")
 
     subreddit_parser = subparsers.add_parser('subreddit')
@@ -49,12 +51,12 @@ def main():
                         help='Names of subreddits to download, e.g., AskReddit')
     subreddit_parser.add_argument('-f',
                         metavar='categories',
-                        default=SubredditDownloader.DEFAULT_CATEGORIES,
+                        default=SubredditDownloaderConfig.DEFAULT_CATEGORIES,
                         nargs='+',
                         action=UniqueAppendAction,
                         help='Categories of posts to download (default: %(default)s)')
     subreddit_parser.add_argument('-l',
-                        default=SubredditDownloader.DEFAULT_POST_LIMIT,
+                        default=SubredditDownloaderConfig.DEFAULT_POST_LIMIT,
                         metavar='post_limit',
                         type=check_positive,
                         help='Limit the number of submissions downloaded in each category (default: %(default)s, i.e., all submissions)')
@@ -102,7 +104,7 @@ def main():
                         action='store_true',
                         help='When true, saveddit will not download videos (e.g., gfycat, redgifs, youtube, v.redd.it links)')
     saved_parser.add_argument('-l',
-                        default=UserDownloader.DEFAULT_POST_LIMIT,
+                        default=UserDownloaderConfig.DEFAULT_POST_LIMIT,
                         metavar='post_limit',
                         type=check_positive,
                         help='Limit the number of saved submissions downloaded (default: %(default)s, i.e., all submissions)')
@@ -128,7 +130,7 @@ def main():
                         action='store_true',
                         help='When true, saveddit will not download videos (e.g., gfycat, redgifs, youtube, v.redd.it links)')
     gilded_parser.add_argument('-l',
-                        default=UserDownloader.DEFAULT_POST_LIMIT,
+                        default=UserDownloaderConfig.DEFAULT_POST_LIMIT,
                         metavar='post_limit',
                         type=check_positive,
                         help='Limit the number of saved submissions downloaded (default: %(default)s, i.e., all submissions)')
@@ -143,8 +145,8 @@ def main():
     submitted_parser = user_subparsers.add_parser('submitted')
     submitted_parser.add_argument('-s',
                         metavar='sort',
-                        default=UserDownloader.DEFAULT_SORT,
-                        choices=UserDownloader.DEFAULT_SORT_OPTIONS,
+                        default=UserDownloaderConfig.DEFAULT_SORT,
+                        choices=UserDownloaderConfig.DEFAULT_SORT_OPTIONS,
                         help='Download submissions sorted by this <sort> option (default: %(default)s, choices: [%(choices)s])')
     submitted_parser.add_argument('--skip-comments',
                         default=False,
@@ -159,7 +161,7 @@ def main():
                         action='store_true',
                         help='When true, saveddit will not download videos (e.g., gfycat, redgifs, youtube, v.redd.it links)')
     submitted_parser.add_argument('-l',
-                        default=UserDownloader.DEFAULT_POST_LIMIT,
+                        default=UserDownloaderConfig.DEFAULT_POST_LIMIT,
                         metavar='post_limit',
                         type=check_positive,
                         help='Limit the number of submissions downloaded (default: %(default)s, i.e., all submissions)')
@@ -185,7 +187,7 @@ def main():
                         action='store_true',
                         help='When true, saveddit will not download videos (e.g., gfycat, redgifs, youtube, v.redd.it links)')
     upvoted_parser.add_argument('-l',
-                        default=UserDownloader.DEFAULT_POST_LIMIT,
+                        default=UserDownloaderConfig.DEFAULT_POST_LIMIT,
                         metavar='post_limit',
                         type=check_positive,
                         help='Limit the number of submissions downloaded (default: %(default)s, i.e., all submissions)')
@@ -200,11 +202,11 @@ def main():
     comments_parser = user_subparsers.add_parser('comments')
     comments_parser.add_argument('-s',
                         metavar='sort',
-                        default=UserDownloader.DEFAULT_SORT,
-                        choices=UserDownloader.DEFAULT_SORT_OPTIONS,
+                        default=UserDownloaderConfig.DEFAULT_SORT,
+                        choices=UserDownloaderConfig.DEFAULT_SORT_OPTIONS,
                         help='Download comments sorted by this <sort> option (default: %(default)s, choices: [%(choices)s])')
     comments_parser.add_argument('-l',
-                        default=UserDownloader.DEFAULT_COMMENT_LIMIT,
+                        default=UserDownloaderConfig.DEFAULT_COMMENT_LIMIT,
                         metavar='post_limit',
                         type=check_positive,
                         help='Limit the number of comments downloaded (default: %(default)s, i.e., all comments)')
@@ -216,13 +218,16 @@ def main():
                         )
 
     args = parser.parse_args(argv)
+    print(asciiart())
 
     if args.subparser_name == "subreddit":
+        from saveddit.subreddit_downloader import SubredditDownloader
         for subreddit in args.subreddits:
             downloader = SubredditDownloader(subreddit)
             downloader.download(args.o,
                                 categories=args.f, post_limit=args.l, skip_videos=args.skip_videos, skip_meta=args.skip_meta, skip_comments=args.skip_comments)
     elif args.subparser_name == "user":
+        from saveddit.user_downloader import UserDownloader
         downloader = UserDownloader()
         downloader.download_user_meta(args)
         if args.user_subparser_name == "comments":
@@ -235,6 +240,8 @@ def main():
             downloader.download_upvoted(args)
         elif args.user_subparser_name == "gilded":
             downloader.download_gilded(args)
+    else:
+        parser.print_help()
 
 if __name__ == "__main__":
     main()

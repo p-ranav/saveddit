@@ -6,6 +6,7 @@ import os
 import praw
 from saveddit.configuration import ConfigurationLoader
 from saveddit.submission_downloader import SubmissionDownloader
+from saveddit.subreddit_downloader_config import SubredditDownloaderConfig
 
 class SubredditDownloader:
     app_config_dir = os.path.expanduser("~/.saveddit")
@@ -18,9 +19,6 @@ class SubredditDownloader:
     REDDIT_CLIENT_ID = config['reddit_client_id']
     REDDIT_CLIENT_SECRET = config['reddit_client_secret']
     IMGUR_CLIENT_ID = config['imgur_client_id']
-    DEFAULT_CATEGORIES = ["hot", "new", "rising",
-                          "controversial", "top", "gilded"]
-    DEFAULT_POST_LIMIT = None
 
     def __init__(self, subreddit_name):
         self.subreddit_name = subreddit_name
@@ -46,9 +44,9 @@ class SubredditDownloader:
         coloredlogs.install(level='SPAM', logger=self.logger,
                             fmt='%(message)s', level_styles=level_styles)
 
-    def download(self, output_path, categories=DEFAULT_CATEGORIES, post_limit=DEFAULT_POST_LIMIT, skip_videos=False, skip_meta=False, skip_comments=False, comment_limit=0):
+    def download(self, output_path, categories=SubredditDownloaderConfig.DEFAULT_CATEGORIES, post_limit=SubredditDownloaderConfig.DEFAULT_POST_LIMIT, skip_videos=False, skip_meta=False, skip_comments=False, comment_limit=0):
         '''
-        categories: List of categories within the subreddit to download (see SubredditDownloader.DEFAULT_CATEGORIES)
+        categories: List of categories within the subreddit to download (see SubredditDownloaderConfig.DEFAULT_CATEGORIES)
         post_limit: Number of posts to download (default: None, i.e., all posts)
         comment_limit: Number of comment levels to download from submission (default: `0`, i.e., only top-level comments)
           - to get all comments, set comment_limit to `None`

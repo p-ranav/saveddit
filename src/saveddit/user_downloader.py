@@ -14,8 +14,7 @@ from saveddit.subreddit_downloader import SubredditDownloader
 import sys
 from tqdm import tqdm
 
-
-class UserDownloader():
+class UserDownloader:
     config = SubredditDownloader.config
 
     REDDIT_CLIENT_ID = config['reddit_client_id']
@@ -37,11 +36,6 @@ class UserDownloader():
             REDDIT_PASSWORD = sys.stdin.readline().rstrip()
 
     IMGUR_CLIENT_ID = config['imgur_client_id']
-    DEFAULT_CATEGORIES = ["comments", "submitted", "saved"]
-    DEFAULT_SORT = "hot"
-    DEFAULT_SORT_OPTIONS = ["hot", "new", "top", "controversial"]
-    DEFAULT_POST_LIMIT = None
-    DEFAULT_COMMENT_LIMIT = None
 
     def __init__(self):
         self.logger = verboselogs.VerboseLogger(__name__)
