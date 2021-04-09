@@ -67,4 +67,5 @@ class SubredditDownloader:
 
             for i, submission in enumerate(category_function(limit=post_limit)):
                 SubmissionDownloader(submission, i, self.logger, category_dir,
-                    skip_videos, skip_meta, skip_comments, comment_limit)
+                    skip_videos, skip_meta, skip_comments, comment_limit,
+                    {'imgur_client_id': SubredditDownloader.IMGUR_CLIENT_ID})

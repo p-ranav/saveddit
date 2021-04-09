@@ -24,7 +24,7 @@ class SubmissionDownloader:
 
         self.logger = logger
         i = submission_index
-        prefix_str = '#' + str(i) + ' '
+        prefix_str = '#' + str(i).zfill(3) + ' '
         self.indent_1 = ' ' * len(prefix_str) + "* "
         self.indent_2 = ' ' * len(self.indent_1) + "- "
 
@@ -35,12 +35,12 @@ class SubmissionDownloader:
             title = re.sub(r'\W+', '_', title)
 
             # Truncate title
-            if len(title) > 127:
-                title = title[0:124]
+            if len(title) > 32:
+                title = title[0:32]
                 title += "..."
 
             # Prepare directory for the submission
-            post_dir = str(i).zfill(4) + "_" + title.replace(" ", "_")
+            post_dir = str(i).zfill(3) + "_" + title.replace(" ", "_")
             submission_dir = os.path.join(output_dir, post_dir)
             if not os.path.exists(submission_dir):
                 os.makedirs(submission_dir)
@@ -478,7 +478,7 @@ class SubmissionDownloader:
                              str(images_count) + " images")
             for i, image in tqdm(enumerate(res.json()["data"]["images"]), total=images_count, bar_format='%s%s{l_bar}{bar:20}{r_bar}%s' % (self.indent_2, Fore.WHITE + Fore.LIGHTBLACK_EX, Fore.RESET)):
                 url = image["link"]
-                filename = str(i).zfill(4) + "_" + url.split("/")[-1]
+                filename = str(i).zfill(3) + "_" + url.split("/")[-1]
                 save_path = os.path.join(output_dir, filename)
                 try:
                     if not os.path.exists(output_dir):
