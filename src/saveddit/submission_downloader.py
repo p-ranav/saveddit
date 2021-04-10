@@ -74,12 +74,11 @@ class SubmissionDownloader:
                 self.download_direct_link(submission, save_path)
                 success = True
             elif self.is_direct_link_to_content(submission.url, [".mp4"]):
+                filename = submission.url.split("/")[-1]
                 self.logger.spam(
                     self.indent_1 + "This is a direct link to a " + filename.split(".")[-1] + " file")
                 if not skip_videos:
                     files_dir = create_files_dir(submission_dir)
-
-                    filename = submission.url.split("/")[-1]
                     save_path = os.path.join(files_dir, filename)
                     self.download_direct_link(submission, save_path)
                     success = True
@@ -196,7 +195,7 @@ class SubmissionDownloader:
         try:
             urllib.request.urlretrieve(submission.url, output_path)
         except Exception as e:
-            self.logger.error(e)
+            self.print_formatted_error(e)
 
     def is_youtube_link(self, url):
         return "youtube.com" in url or "youtu.be" in url
