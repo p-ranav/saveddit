@@ -286,26 +286,29 @@ class SubmissionDownloader:
             self.logger.spam(self.indent_2 + "This reddit gallery has " +
                              str(image_count) + " images")
             for j, item in tqdm(enumerate(gallery_data["items"]), total=image_count, bar_format='%s%s{l_bar}{bar:20}{r_bar}%s' % (self.indent_2, Fore.WHITE + Fore.LIGHTBLACK_EX, Fore.RESET)):
-                media_id = item["media_id"]
-                item_metadata = media_metadata[media_id]
-                item_format = item_metadata['m']
-                if "image/" in item_format or "video/" in item_format:
-                    if not os.path.exists(output_path):
-                        os.makedirs(output_path)
-                    if "image/" in item_format:
-                        item_format = item_format.split("image/")[-1]
-                    elif "video/" in item_format:
-                        item_format = item_format.split("video/")[-1]
-                        # Skip video content if requested by user
-                        if skip_videos:
-                            continue
-                    item_filename = media_id + "." + item_format
-                    item_url = item_metadata["s"]["u"]
-                    save_path = os.path.join(output_path, item_filename)
-                    try:
-                        urllib.request.urlretrieve(item_url, save_path)
-                    except Exception as e:
-                        self.print_formatted_error(e)
+                try:
+                    media_id = item["media_id"]
+                    item_metadata = media_metadata[media_id]
+                    item_format = item_metadata['m']
+                    if "image/" in item_format or "video/" in item_format:
+                        if not os.path.exists(output_path):
+                            os.makedirs(output_path)
+                        if "image/" in item_format:
+                            item_format = item_format.split("image/")[-1]
+                        elif "video/" in item_format:
+                            item_format = item_format.split("video/")[-1]
+                            # Skip video content if requested by user
+                            if skip_videos:
+                                continue
+                        item_filename = media_id + "." + item_format
+                        item_url = item_metadata["s"]["u"]
+                        save_path = os.path.join(output_path, item_filename)
+                        try:
+                            urllib.request.urlretrieve(item_url, save_path)
+                        except Exception as e:
+                            self.print_formatted_error(e)
+                except Exception as e:
+                    self.print_formatted_error(e)
 
     def is_reddit_video(self, url):
         return "v.redd.it" in url
