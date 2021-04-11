@@ -6,7 +6,7 @@
 pip3 install saveddit
 ```
 
-### Setting up authorization
+## Setting up authorization
 
 * [Register an application with Reddit](https://ssl.reddit.com/prefs/apps/)
   - Write down your client ID and secret from the app
@@ -22,7 +22,7 @@ pip3 install saveddit
 
 These registrations will authorize you to use the Reddit and Imgur APIs to download publicly available information.
 
-### User configuration
+## User configuration
 
 The first time you run `saveddit`, you will see something like this:
 
@@ -45,7 +45,7 @@ reddit_client_secret: '<YOUR_REDDIT_CLIENT_SECRET>'
 reddit_username: '<YOUR_REDDIT_USERNAME>'
 ```
 
-### Download from Subreddit
+## Download from Subreddit
 
 ```console
 foo@bar:~$ saveddit subreddit -h
@@ -67,10 +67,21 @@ optional arguments:
   -o output_path        Directory where saveddit will save downloaded content
 ```
 
-#### Example Usage: Download the hottest 15 posts each from /r/pics and /r/aww
+```console
+foo@bar:~$ saveddit subreddit pics -f hot -l 5 -o ~/Desktop
+```
 
 ```console
-foo@bar:~$ saveddit subreddit pics aww -f hot -l 5 -o ~/Desktop
+foo@bar:~$ tree -L 4 ~/Desktop/www.reddit.com
+/Users/pranav/Desktop/www.reddit.com
+└── r
+    └── pics
+        └── hot
+            ├── 000_Prince_Philip_Duke_of_Edinburgh_...
+            ├── 001_Day_10_of_Nobody_Noticing_the_Ap...
+            ├── 002_First_edited_picture
+            ├── 003_Reorganized_a_few_months_ago_and...
+            └── 004_Van_Gogh_inspired_rainy_street_I...
 ```
 
 You can download from multiple subreddits and use multiple filters:
@@ -79,79 +90,126 @@ You can download from multiple subreddits and use multiple filters:
 foo@bar:~$ saveddit subreddit funny AskReddit -f hot top new rising -l 5 -o ~/Downloads/Reddit/.
 ```
 
-### Download from User's page
+The downloads from each subreddit to go to a separate folder like so:
+
+```console
+foo@bar:~$ tree -L 3 ~/Downloads/Reddit/www.reddit.com
+/Users/pranav/Downloads/Reddit/www.reddit.com
+└── r
+    ├── AskReddit
+    │   ├── hot
+    │   ├── new
+    │   ├── rising
+    │   └── top
+    └── funny
+        ├── hot
+        ├── new
+        ├── rising
+        └── top
+```
+
+## Download from anonymous Multireddit
+
+To download from an anonymous multireddit, use the `multireddit` option and pass a number of subreddit names
+
+```console
+foo@bar:~$ saveddit multireddit -h
+usage: saveddit multireddit [-h] [-f categories [categories ...]] [-l post_limit] [--skip-comments] [--skip-meta] [--skip-videos] -o output_path subreddits [subreddits ...]
+
+positional arguments:
+  subreddits            Names of subreddits to download, e.g., aww, pics. The downloads will be stored in <OUTPUT_PATH>/www.reddit.com/m/aww+pics/.
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -f categories [categories ...]
+                        Categories of posts to download (default: ['hot', 'new', 'random_rising', 'rising', 'controversial', 'top', 'gilded'])
+  -l post_limit         Limit the number of submissions downloaded in each category (default: None, i.e., all submissions)
+  --skip-comments       When true, saveddit will not save comments to a comments.json file
+  --skip-meta           When true, saveddit will not save meta to a submission.json file on submissions
+  --skip-videos         When true, saveddit will not download videos (e.g., gfycat, redgifs, youtube, v.redd.it links)
+  -o output_path        Directory where saveddit will save downloaded content
+```
+
+```console
+foo@bar:~$ saveddit multireddit EarthPorn NaturePics -f hot -l 5 -o ~/Desktop
+```
+
+Anonymous multireddits are saved in `www.reddit.com/m/<Multireddit_names>/<category>/` like so:
+
+```console
+tree -L 4 ~/Desktop/www.reddit.com
+/Users/pranav/Desktop/www.reddit.com
+└── m
+    └── EarthPorn+NaturePics
+        └── hot
+            ├── 000_Banning_State_Park_Minnesota_OC_...
+            ├── 001_Misty_forest_in_the_mountains_of...
+            ├── 002_One_of_the_highlights_of_my_last...
+            ├── 003__OC_Japan_Kyoto_Garden_of_the_Go...
+            └── 004_Sunset_at_Mt_Rainier_National_Pa...
+```
+
+## Download from User's page
 
 ```console
 foo@bar:~$ saveddit user -h
-Retrieving configuration from /Users/pranav/.saveddit/user_config.yaml file
-
-usage: saveddit user [-h] users [users ...] {saved,gilded,submitted,upvoted,comments} ...
+usage: saveddit user [-h] users [users ...] {saved,gilded,submitted,multireddits,upvoted,comments} ...
 
 positional arguments:
   users                 Names of users to download, e.g., Poem_for_your_sprog
-  {saved,gilded,submitted,upvoted,comments}
+  {saved,gilded,submitted,multireddits,upvoted,comments}
 
 optional arguments:
   -h, --help            show this help message and exit
 ```
 
-#### Example Usage: Download top 10 comments submissions by user
+Here's a usage example for downloading all comments made by `Poem_for_your_sprog`
 
 ```console
-saveddit user "Poem_for_your_sprog" comments -s top -l 10 -o ~/Desktop
+foo@bar:~$ saveddit user "Poem_for_your_sprog" comments -s top -l 5 -o ~/Desktop
 ```
 
-### Example Output
+Here's another example for downloading `kemitche`'s multireddits:
 
 ```console
-foo@bar:~$ tree ~/Downloads/www.reddit.com
-/Users/pranav/Downloads/www.reddit.com
-├── r
-│   └── aww
-│       └── new
-│           ├── 000_We_decided_to_foster_a_litter_of...
-│           │   ├── comments.json
-│           │   ├── files
-│           │   │   └── 7fjt2gkp32s61.jpg
-│           │   └── submission.json
-│           ├── 001_Besties_
-│           │   ├── comments.json
-│           │   ├── files
-│           │   │   └── zklpm1qo32s61.jpg
-│           │   └── submission.json
-│           ├── 002_My_cat_dice_with_his_best_friend...
-│           │   ├── comments.json
-│           │   ├── files
-│           │   │   └── av3yrbmo32s61.jpg
-│           │   └── submission.json
-│           ├── 003_Digging_makes_her_the_happiest_
-│           │   ├── comments.json
-│           │   ├── files
-│           │   │   └── zjw5f3yl32s61.jpg
-│           │   └── submission.json
-│           └── 004_Our_beloved_pup_needs_some_help_...
-│               ├── comments.json
-│               ├── files
-│               │   ├── 66su4i9b32s61.mp4
-│               │   ├── 66su4i9b32s61_audio.mp4
-│               │   └── 66su4i9b32s61_video.mp4
-│               └── submission.json
-└── u
-    └── Poem_for_your_sprog
-        └── gilded
-            ├── 000_Comment__The_guy_was_the_biggest_deal_an...
-            │   └── comments.json
-            ├── 001_Comment__tl_dr_life_is_long_Journey_s_h...
-            │   └── comments.json
-            ├── 002_Comment_From_Northwind_mine_to_Talos_shr...
-            │   └── comments.json
-            ├── 003_Comment__I_feel_terrible_having_people_j...
-            │   └── comments.json
-            └── 004_Comment_I_often_stop_a_time_or_two_At_...
-                └── comments.json
+foo@bar:~$ saveddit user kemitche multireddits -n reddit -f hot -l 5 -o ~/Desktop
+```
 
-21 directories, 22 files
-(saveddit_prod) (base)
+User-specific content is downloaded to `www.reddit.com/u/<Username>/...` like so:
+
+```console
+foo@bar:~$ tree ~/Desktop/www.reddit.com
+/Users/pranav/Desktop/www.reddit.com
+└── u
+    ├── Poem_for_your_sprog
+    │   ├── comments
+    │   │   └── top
+    │   │       ├── 000_Comment_my_name_is_Cow_and_wen_its_ni....json
+    │   │       ├── 001_Comment_It_stopped_at_six_and_life....json
+    │   │       ├── 002_Comment__Perhaps_I_could_listen_to_podca....json
+    │   │       ├── 003_Comment__I_don_t_have_regret_for_the_thi....json
+    │   │       └── 004_Comment__So_throw_off_the_chains_of_oppr....json
+    │   └── user.json
+    └── kemitche
+        ├── m
+        │   └── reddit
+        │       └── hot
+        │           ├── 000_When_posting_to_my_u_channel_NSF...
+        │           │   ├── comments.json
+        │           │   └── submission.json
+        │           ├── 001_How_to_remove_popular_near_you
+        │           │   ├── comments.json
+        │           │   └── submission.json
+        │           ├── 002__IOS_2021_13_0_Reddit_is_just_su...
+        │           │   ├── comments.json
+        │           │   └── submission.json
+        │           ├── 003_The_Approve_User_button_should_n...
+        │           │   ├── comments.json
+        │           │   └── submission.json
+        │           └── 004_non_moderators_unable_to_view_su...
+        │               ├── comments.json
+        │               └── submission.json
+        └── user.json
 ```
 
 ## Supported Links:
