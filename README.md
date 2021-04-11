@@ -123,7 +123,7 @@ foo@bar:~$ tree -L 3 ~/Downloads/Reddit/www.reddit.com
         └── top
 ```
 
-## Download from an nonymous Multireddit
+## Download from anonymous Multireddit
 
 To download from an anonymous multireddit, use the `multireddit` option and pass a number of subreddit names
 
