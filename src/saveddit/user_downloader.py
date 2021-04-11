@@ -176,6 +176,58 @@ class UserDownloader:
             except Exception as e:
                 self.logger.error("Unable to download comments for user `" + username + "` - " + str(e))
 
+    def download_multireddits(self, args):
+        output_path = args.o
+
+        for username in args.users:
+            user = self.reddit.redditor(name=username)
+
+            root_dir = os.path.join(os.path.join(os.path.join(os.path.join(
+                output_path, "www.reddit.com"), "u"), username), "m")
+
+            try:
+                post_limit = args.l
+                names = args.n
+                categories = args.f
+                skip_meta = args.skip_meta
+                skip_videos = args.skip_videos
+                skip_comments = args.skip_comments
+                comment_limit = 0 # top-level comments ONLY
+
+                # If names is None, download all multireddits from user's page
+                if not names:
+                    names = [m.name.lower() for m in user.multireddits()]
+                else:
+                    names = [n.lower() for n in names]
+
+                for multireddit in user.multireddits():
+                    if multireddit.name.lower() in names:
+                        name = multireddit.name
+                        self.logger.notice("Downloading from /u/" + username + "/m/" + name)
+                        multireddit_dir = os.path.join(root_dir, name)
+                        if not os.path.exists(multireddit_dir):
+                            os.makedirs(multireddit_dir)
+
+                        for category in categories:
+
+                            self.logger.verbose("Downloading submissions sorted by " + category)
+                            category_function = getattr(multireddit, category)
+
+                            category_dir = os.path.join(multireddit_dir, category)
+
+                            if category_function:
+                                for i, s in enumerate(category_function(limit=post_limit)):
+                                    try:
+                                        prefix_str = '#' + str(i).zfill(3) + ' '
+                                        self.indent_1 = ' ' * len(prefix_str) + "* "
+                                        self.indent_2 = ' ' * len(self.indent_1) + "- "
+                                        SubmissionDownloader(s, i, self.logger, category_dir, skip_videos, skip_meta, skip_comments, comment_limit,
+                                                                {'imgur_client_id': UserDownloader.IMGUR_CLIENT_ID})
+                                    except Exception as e:
+                                        self.logger.error(self.indent_2 + "Unable to download post #" + str(i) + " for user `" + username + "` from multireddit " + name + " - " + str(e))
+            except Exception as e:
+                self.logger.error(self.indent_1 + "Unable to download multireddit posts for user `" + username + "` - " + str(e))
+
     def download_submitted(self, args):
         output_path = args.o
 
