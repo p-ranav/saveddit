@@ -227,6 +227,64 @@ foo@bar:~$ tree ~/Desktop/www.reddit.com
         └── user.json
 ```
 
+## Search and Download
+
+`saveddit` support searching subreddits and downloading search results
+
+```console
+foo@bar:~$ saveddit search -h
+usage: saveddit search [-h] -q query [-s sort] [-t time_filter] [--include-nsfw] [--skip-comments] [--skip-meta] [--skip-videos] -o output_path subreddits [subreddits ...]
+
+positional arguments:
+  subreddits       Names of subreddits to search, e.g., all, aww, pics
+
+optional arguments:
+  -h, --help       show this help message and exit
+  -q query         Search query string
+  -s sort          Sort to apply on search (default: relevance, choices: [relevance, hot, top, new, comments])
+  -t time_filter   Time filter to apply on search (default: all, choices: [all, day, hour, month, week, year])
+  --include-nsfw   When true, saveddit will include NSFW results in search
+  --skip-comments  When true, saveddit will not save comments to a comments.json file
+  --skip-meta      When true, saveddit will not save meta to a submission.json file on submissions
+  --skip-videos    When true, saveddit will not download videos (e.g., gfycat, redgifs, youtube, v.redd.it links)
+  -o output_path   Directory where saveddit will save downloaded content
+```
+
+e.g.,
+
+```console
+foo@bar:~$ saveddit search soccer -q "Chelsea" -o ~/Desktop
+```
+
+The downloaded search results are stored in `www.reddit.com/q/<search_query>/<subreddits>/<sort>/.`
+
+```console
+foo@bar:~$ tree -L 4 ~/Desktop/www.reddit.com/q
+/Users/pranav/Desktop/www.reddit.com/q
+└── Chelsea
+    └── soccer
+        └── relevance
+            ├── 000__Official_Results_for_UEFA_Champ...
+            ├── 001_Porto_0_1_Chelsea_Mason_Mount_32...
+            ├── 002_Crystal_Palace_0_2_Chelsea_Chris...
+            ├── 003_Post_Match_Thread_Chelsea_2_5_We...
+            ├── 004_Match_Thread_Porto_vs_Chelsea_UE...
+            ├── 005_Crystal_Palace_1_4_Chelsea_Chris...
+            ├── 006_Porto_0_2_Chelsea_Ben_Chilwell_8...
+            ├── 007_Post_Match_Thread_Porto_0_2_Chel...
+            ├── 008_UCL_Quaterfinalists_are_Bayern_D...
+            ├── 009__MD_Mino_Raiola_and_Haaland_s_fa...
+            ├── 010_Chelsea_2_5_West_Brom_Callum_Rob...
+            ├── 011_Chelsea_1_2_West_Brom_Matheus_Pe...
+            ├── 012__Bild_Sport_via_Sport_Witness_Ch...
+            ├── 013_Match_Thread_Chelsea_vs_West_Bro...
+            ├── 014_Chelsea_1_3_West_Brom_Callum_Rob...
+            ├── 015_Match_Thread_Chelsea_vs_Atletico...
+            ├── 016_Stefan_Savi�\207_Atlético_Madrid_str...
+            ├── 017_Chelsea_1_0_West_Brom_Christian_...
+            └── 018_Alvaro_Morata_I_ve_never_had_dep...
+```
+
 ## Supported Links:
 
 * Direct links to images or videos, e.g., `.png`, `.jpg`, `.mp4`, `.gif` etc.
