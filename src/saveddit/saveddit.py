@@ -1,6 +1,7 @@
 import argparse
 import sys
 from saveddit.multireddit_downloader_config import MultiredditDownloaderConfig
+from saveddit.search_config import SearchConfig
 from saveddit.subreddit_downloader_config import SubredditDownloaderConfig
 from saveddit.user_downloader_config import UserDownloaderConfig
 from saveddit._version import __version__
@@ -110,6 +111,49 @@ def main():
                         action='store_true',
                         help='When true, saveddit will not download videos (e.g., gfycat, redgifs, youtube, v.redd.it links)')
     multireddit_parser.add_argument('-o',
+                        required=True,
+                        type=str,
+                        metavar='output_path',
+                        help='Directory where saveddit will save downloaded content'
+                        )
+
+    search_parser = subparsers.add_parser('search')
+    search_parser.add_argument('subreddits',
+                        metavar='subreddits',
+                        nargs='+',
+                        action=UniqueAppendAction,
+                        help='Names of subreddits to search, e.g., all, aww, pics')
+    search_parser.add_argument('-q',
+                        metavar='query',
+                        required=True,
+                        help='Search query string')
+    search_parser.add_argument('-s',
+                        metavar='sort',
+                        default=SearchConfig.DEFAULT_SORT,
+                        choices=SearchConfig.DEFAULT_SORT_CATEGORIES,
+                        help='Sort to apply on search (default: %(default)s, choices: [%(choices)s])')
+    search_parser.add_argument('-t',
+                        metavar='time_filter',
+                        default=SearchConfig.DEFAULT_TIME_FILTER,
+                        choices=SearchConfig.DEFAULT_TIME_FILTER_CATEGORIES,
+                        help='Time filter to apply on search (default: %(default)s, choices: [%(choices)s])')
+    search_parser.add_argument('--include-nsfw',
+                        default=False,
+                        action='store_true',
+                        help='When true, saveddit will include NSFW results in search')
+    search_parser.add_argument('--skip-comments',
+                        default=False,
+                        action='store_true',
+                        help='When true, saveddit will not save comments to a comments.json file')
+    search_parser.add_argument('--skip-meta',
+                        default=False,
+                        action='store_true',
+                        help='When true, saveddit will not save meta to a submission.json file on submissions')
+    search_parser.add_argument('--skip-videos',
+                        default=False,
+                        action='store_true',
+                        help='When true, saveddit will not download videos (e.g., gfycat, redgifs, youtube, v.redd.it links)')
+    search_parser.add_argument('-o',
                         required=True,
                         type=str,
                         metavar='output_path',
@@ -306,6 +350,10 @@ def main():
         downloader = MultiredditDownloader(args.subreddits)
         downloader.download(args.o,
                             categories=args.f, post_limit=args.l, skip_videos=args.skip_videos, skip_meta=args.skip_meta, skip_comments=args.skip_comments)
+    elif args.subparser_name == "search":
+        from saveddit.search_subreddits import SearchSubreddits
+        downloader = SearchSubreddits(args.subreddits)
+        downloader.download(args)
     elif args.subparser_name == "user":
         from saveddit.user_downloader import UserDownloader
         downloader = UserDownloader()
