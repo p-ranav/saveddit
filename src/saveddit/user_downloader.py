@@ -61,7 +61,7 @@ class UserDownloader:
         else:
             if not len(UserDownloader.REDDIT_PASSWORD):
                 if sys.stdin.isatty():
-                    print("Username: " + REDDIT_USERNAME)
+                    print("Username: " + UserDownloader.REDDIT_USERNAME)
                     REDDIT_PASSWORD = getpass.getpass("Password: ")
                 else:
                     # echo "foobar" > password
