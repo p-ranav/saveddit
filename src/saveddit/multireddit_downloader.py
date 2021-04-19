@@ -53,8 +53,14 @@ class MultiredditDownloader:
         comment_limit: Number of comment levels to download from submission (default: `0`, i.e., only top-level comments)
           - to get all comments, set comment_limit to `None`
         '''
+
+        multireddit_dir_name = self.multireddit_name
+        if len(multireddit_dir_name) > 64:
+            multireddit_dir_name = multireddit_dir_name[0:63]
+            multireddit_dir_name += "..."
+
         root_dir = os.path.join(os.path.join(os.path.join(
-            output_path, "www.reddit.com"), "m"), self.multireddit_name)
+            output_path, "www.reddit.com"), "m"), multireddit_dir_name)
         categories = categories
 
         for c in categories:
