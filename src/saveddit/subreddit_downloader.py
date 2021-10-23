@@ -44,7 +44,7 @@ class SubredditDownloader:
         coloredlogs.install(level='SPAM', logger=self.logger,
                             fmt='%(message)s', level_styles=level_styles)
 
-    def download(self, output_path, categories=SubredditDownloaderConfig.DEFAULT_CATEGORIES, post_limit=SubredditDownloaderConfig.DEFAULT_POST_LIMIT, skip_videos=False, skip_meta=False, skip_comments=False, comment_limit=0):
+    def download(self, output_path, categories=SubredditDownloaderConfig.DEFAULT_CATEGORIES, post_limit=SubredditDownloaderConfig.DEFAULT_POST_LIMIT, skip_videos=False, skip_meta=False, skip_comments=False, comment_limit=None):
         '''
         categories: List of categories within the subreddit to download (see SubredditDownloaderConfig.DEFAULT_CATEGORIES)
         post_limit: Number of posts to download (default: None, i.e., all posts)
