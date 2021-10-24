@@ -46,8 +46,8 @@ class SubmissionDownloader:
             if not os.path.exists(submission_dir):
                 os.makedirs(submission_dir)
             elif os.path.exists(submission_dir):
-                print("Found existing {0} so skipping it", submission_dir)
-                continue
+                print("File exists, Skipping it.")
+                return
 
             self.logger.spam(
                 self.indent_1 + "Processing `" + submission.url + "`")
