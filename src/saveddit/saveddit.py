@@ -74,6 +74,11 @@ def main():
                         default=False,
                         action='store_true',
                         help='When true, saveddit will not download videos (e.g., gfycat, redgifs, youtube, v.redd.it links)')
+    subreddit_parser.add_argument('--all-comments',
+                        default=False,
+                        action='store_true',
+                        metavar='download_all_comments',
+                        help='When true, saveddit will download all the comments in a post instead of just the top ones.')
     subreddit_parser.add_argument('-o',
                         required=True,
                         type=str,
@@ -344,7 +349,7 @@ def main():
         for subreddit in args.subreddits:
             downloader = SubredditDownloader(subreddit)
             downloader.download(args.o,
-                                categories=args.f, post_limit=args.l, skip_videos=args.skip_videos, skip_meta=args.skip_meta, skip_comments=args.skip_comments)
+                                categories=args.f, post_limit=args.l, skip_videos=args.skip_videos, skip_meta=args.skip_meta, skip_comments=args.skip_comments, download_all_comments=args.download_all_comments)
     elif args.subparser_name == "multireddit":
         from saveddit.multireddit_downloader import MultiredditDownloader
         downloader = MultiredditDownloader(args.subreddits)
