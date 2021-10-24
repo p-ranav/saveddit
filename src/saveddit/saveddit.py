@@ -74,6 +74,10 @@ def main():
                         default=False,
                         action='store_true',
                         help='When true, saveddit will not download videos (e.g., gfycat, redgifs, youtube, v.redd.it links)')
+    subreddit_parser.add_argument('--all-comments',
+                        default=False,
+                        action='store_true',
+                        help='When true, saveddit will download all the comments in a post instead of just the top ones.')
     subreddit_parser.add_argument('-o',
                         required=True,
                         type=str,
