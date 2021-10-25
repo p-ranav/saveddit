@@ -62,10 +62,10 @@ class ConfigurationLoader:
                reddit_user = str(input("Reddit Username: "))
                imgur_client = str(input("Imgur Client ID: "))
                STD_CONFIG = {
-                   "reddit_client_id": "".format(reddit_client),
-                   "reddit_client_secret": "".format(reddit_client_sec),
-                   "reddit_username": "".format(reddit_user),
-                   "imgur_client_id": "".format(imgur_client),
+                   "reddit_client_id": "{}".format(reddit_client),
+                   "reddit_client_secret": "{}".format(reddit_client_sec),
+                   "reddit_username": "{}".format(reddit_user),
+                   "imgur_client_id": "{}".format(imgur_client),
                }
                with open(path, "x") as f:
                    yaml.dump(STD_CONFIG, f)
