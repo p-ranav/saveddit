@@ -348,7 +348,7 @@ def main():
         for subreddit in args.subreddits:
             downloader = SubredditDownloader(subreddit)
             downloader.download(args.o,
-                                categories=args.f, post_limit=args.l, skip_videos=args.skip_videos, skip_meta=args.skip_meta, skip_comments=args.skip_comments, download_all_comments=args.all_comments)
+                                download_all_comments=args.all_comments, categories=args.f, post_limit=args.l, skip_videos=args.skip_videos, skip_meta=args.skip_meta, skip_comments=args.skip_comments)
     elif args.subparser_name == "multireddit":
         from saveddit.multireddit_downloader import MultiredditDownloader
         downloader = MultiredditDownloader(args.subreddits)
