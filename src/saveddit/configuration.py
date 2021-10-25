@@ -48,10 +48,11 @@ class ConfigurationLoader:
         # Check if file exists. If not, create one and fill it with std config template
         if not os.path.exists(path):
             print(
-                "{red}No configuration file found.\nCreating one. Would you like to edit it now?\n[Y/N]{white}".format(
+                "{red}No configuration file found.\nCreating one. Would you like to edit it now?\n > Choose {purple}Y{red} for yes and {purple}N{red} for no.{white}".format(
                     red=ConfigurationLoader.RED,
                     path=path,
                     white=ConfigurationLoader.WHITE,
+                    purple=ConfigurationLoader.PURPLE,
                 )
             )
             getchoice = str(input("> "))
@@ -60,14 +61,14 @@ class ConfigurationLoader:
                reddit_client_sec = str(input("Reddit Client Secret: "))
                reddit_user = str(input("Reddit Username: "))
                imgur_client = str(input("Imgur Client ID: "))
-               _STD_CONFIG = {
+               STD_CONFIG = {
                    "reddit_client_id": "".format(reddit_client),
                    "reddit_client_secret": "".format(reddit_client_sec),
                    "reddit_username": "".format(reddit_user),
                    "imgur_client_id": "".format(imgur_client),
                }
-               with open(_path, "x") as _f:
-                   yaml.dump(_STD_CONFIG, _f)
+               with open(path, "x") as f:
+                   yaml.dump(STD_CONFIG, f)
                sys.exit(0)
             else:
                print(
@@ -77,7 +78,7 @@ class ConfigurationLoader:
                     white=ConfigurationLoader.WHITE,
                 )
             )
-            _create_config(path)
+                _create_config(path)
 
         with open(path, "r") as _f:
             return yaml.safe_load(_f.read())
