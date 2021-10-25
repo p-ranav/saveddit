@@ -60,15 +60,15 @@ class ConfigurationLoader:
                reddit_client_sec = str(input("Reddit Client Secret: "))
                reddit_user = str(input("Reddit Username: "))
                imgur_client = str(input("Imgur Client ID: "))
-                _STD_CONFIG = {
-                    "reddit_client_id": "".format(reddit_client),
-                    "reddit_client_secret": "".format(reddit_client_sec),
-                    "reddit_username": "".format(reddit_user),
-                    "imgur_client_id": "".format(imgur_client),
-                }
-                with open(_path, "x") as _f:
-                    yaml.dump(_STD_CONFIG, _f)
-                sys.exit(0)
+               _STD_CONFIG = {
+                   "reddit_client_id": "".format(reddit_client),
+                   "reddit_client_secret": "".format(reddit_client_sec),
+                   "reddit_username": "".format(reddit_user),
+                   "imgur_client_id": "".format(imgur_client),
+               }
+               with open(_path, "x") as _f:
+                   yaml.dump(_STD_CONFIG, _f)
+               sys.exit(0)
             else:
                print(
                 "{red}Alright. \nPlease edit {path} with valid credentials.\nExiting{white}".format(
