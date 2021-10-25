@@ -30,9 +30,17 @@ The first time you run `saveddit`, you will see something like this:
 foo@bar:~$ saveddit
 Retrieving configuration from ~/.saveddit/user_config.yaml file
 No configuration file found.
-Creating one. Please edit ~/.saveddit/user_config.yaml with valid credentials.
-Exiting
+Creating one. Would you like to edit it now?
+> Choose Y for yes and N for no
 ```
+
+Once you choose 'yes', the program will request you to enter these credentials:
+- Your imgur client ID
+- Your reddit client ID
+- Your reddit client secret
+- Your reddit username
+
+In case you choose 'no', the program will create a file which you can edit later, this is how to edit it:
 
 * Open the generated `~/.saveddit/user_config.yaml`
 * Update the client IDs and secrets from the previous step
@@ -64,6 +72,7 @@ optional arguments:
   --skip-comments       When true, saveddit will not save comments to a comments.json file
   --skip-meta           When true, saveddit will not save meta to a submission.json file on submissions
   --skip-videos         When true, saveddit will not download videos (e.g., gfycat, redgifs, youtube, v.redd.it links)
+  --all-comments        When true, saveddit will download all the comments in a post instead of just downloading the top ones.)
   -o output_path        Directory where saveddit will save downloaded content
 ```
 
