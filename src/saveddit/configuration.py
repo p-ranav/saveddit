@@ -48,7 +48,7 @@ class ConfigurationLoader:
         # Check if file exists. If not, create one and fill it with std config template
         if not os.path.exists(path):
             print(
-                "{red}No configuration file found.\nCreating one. Would you like to edit it now? \n[Y/N]{white}".format(
+                "{red}No configuration file found.\nCreating one. Would you like to edit it now?\n[Y/N]{white}".format(
                     red=ConfigurationLoader.RED,
                     path=path,
                     white=ConfigurationLoader.WHITE,
@@ -71,7 +71,7 @@ class ConfigurationLoader:
                sys.exit(0)
             else:
                print(
-                "{red}Alright. \nPlease edit {path} with valid credentials.\nExiting{white}".format(
+                "{red}Alright.\nPlease edit {path} with valid credentials.\nExiting{white}".format(
                     red=ConfigurationLoader.RED,
                     path=path,
                     white=ConfigurationLoader.WHITE,
