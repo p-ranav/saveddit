@@ -64,6 +64,7 @@ optional arguments:
   --skip-comments       When true, saveddit will not save comments to a comments.json file
   --skip-meta           When true, saveddit will not save meta to a submission.json file on submissions
   --skip-videos         When true, saveddit will not download videos (e.g., gfycat, redgifs, youtube, v.redd.it links)
+  --all-comments        When true, saveddit will download all the comments in a post instead of just downloading the top ones.)
   -o output_path        Directory where saveddit will save downloaded content
 ```
 
