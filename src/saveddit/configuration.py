@@ -70,7 +70,7 @@ class ConfigurationLoader:
                with open(path, "x") as f:
                    yaml.dump(STD_CONFIG, f)
                sys.exit(0)
-            else:
+            elif getchoice == "N":
                print(
                 "{red}Alright.\nPlease edit {path} with valid credentials.\nExiting{white}".format(
                     red=ConfigurationLoader.RED,
@@ -79,6 +79,9 @@ class ConfigurationLoader:
                 )
             )
                 _create_config(path)
+            else:
+                print("Invalid choice.")
+                exit()
 
         with open(path, "r") as _f:
             return yaml.safe_load(_f.read())
