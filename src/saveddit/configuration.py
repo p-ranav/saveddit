@@ -78,7 +78,7 @@ class ConfigurationLoader:
                     white=ConfigurationLoader.WHITE,
                 )
             )
-                _create_config(path)
+               _create_config(path)
             else:
                 print("Invalid choice.")
                 exit()
