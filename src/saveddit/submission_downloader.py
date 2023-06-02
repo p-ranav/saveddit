@@ -17,6 +17,7 @@ import requests
 from tqdm import tqdm
 import urllib.request
 import youtube_dl
+import os
 
 
 class SubmissionDownloader:
@@ -38,7 +39,10 @@ class SubmissionDownloader:
             # Truncate title
             if len(title) > 32:
                 title = title[0:32]
-                title += "..."
+                if os.name == "nt":
+                    pass
+                else:
+                    title += "..."
 
             # Prepare directory for the submission
             post_dir = str(i).zfill(3) + "_" + title.replace(" ", "_")
